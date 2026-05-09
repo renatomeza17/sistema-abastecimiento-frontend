@@ -1,6 +1,11 @@
 .login-container {
 //   background: linear-gradient(159deg, #EFF6FF 0%, #DBEAFE 100%);
-  background-image: url('/assets/img/facultad-unmsm.png');
+   background-image: 
+    linear-gradient(
+      rgba(0, 0, 0, 0.45),
+      rgba(0, 0, 0, 0.45)
+    ),
+    url('/assets/img/facultad-unmsm.png');
   background-size: cover;
   background-position: center;
 }

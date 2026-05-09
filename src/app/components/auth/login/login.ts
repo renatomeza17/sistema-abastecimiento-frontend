@@ -16,7 +16,7 @@ export class Login {
 
   credential={
     // email:'',
-    username:'',
+    identificador:'',
     password:''
 
   }
@@ -27,26 +27,19 @@ export class Login {
   ) {}
 
 
-  onLogin(){
-
-    const cleanData: LoginRequest = {
-    username: this.credential.username,
-    password: this.credential.password,
+  onLogin() {
     
-  };
-
-    this.authService.login(cleanData).subscribe({
+    // 2. Enviamos la petición
+    this.authService.login(this.credential).subscribe({
       next: (response) => {
         console.log('¡Bienvenido al SUDAB!', response);
         this.router.navigate(['/dashboard']);
       },
-
       error: (error) => {
         console.error('Error en el login', error);
-        alert('Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo.');
+        alert('Credenciales incorrectas. Verifica tu usuario/correo y contraseña.');
       }
     });
-
   }
 
 
