@@ -1,0 +1,34 @@
+<div class="login-container d-flex justify-content-center align-items-center vh-100">
+  <div class="login-card shadow-sm border p-4">
+    
+    <div class="text-center mb-4">
+      <div class="logo-circle mx-auto mb-3">
+        <i class="bi bi-shield-lock text-white fs-2"></i>
+      </div>
+      <h2 class="title-system">SUDAB - UNMSM</h2>
+      <p class="subtitle-system">Sistema Universitario de Abastecimiento</p>
+    </div>
+
+    <form>
+      <div class="mb-3">
+        <label class="form-label">Usuario</label>
+        <input type="text" name="username" [(ngModel)]="credential.username" class="form-control custom-input" placeholder="Ingrese su usuario">
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">Contraseña</label>
+        <input type="password" name="password" [(ngModel)]="credential.password" class="form-control custom-input" placeholder="Ingrese su contraseña">
+      </div>
+
+      <button type="submit" (click)="onLogin()" class="btn btn-dark w-100 py-2 btn-login">
+        Iniciar Sesión
+      </button>
+    </form>
+
+    <div class="alert alert-info mt-4 test-users">
+      <small class="d-block fw-bold text-muted">Usuarios de prueba:</small>
+      <small class="text-muted">admin, jefe, director, oficina, apoyo, dependencia, encargado</small>
+    </div>
+    
+  </div>
+</div>
