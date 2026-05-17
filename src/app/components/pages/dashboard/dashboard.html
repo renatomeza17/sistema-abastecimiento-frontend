@@ -1,1 +1,114 @@
-<p>dashboard works!</p>
+<div class="dashboard">
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    @for (stat of stats; track stat.label) {
+      <div class="stat-card">
+        <div class="stat-top">
+          <i class="bi {{ stat.icon }} stat-icon"></i>
+          <span class="stat-trend" [class.up]="stat.trendUp" [class.down]="!stat.trendUp">
+            {{ stat.trend }} <i class="bi" [class.bi-arrow-up-right]="stat.trendUp" [class.bi-arrow-down-right]="!stat.trendUp"></i>
+          </span>
+        </div>
+        <div class="stat-value">{{ stat.value }}</div>
+        <div class="stat-label">{{ stat.label }}</div>
+      </div>
+    }
+  </div>
+
+  <!-- Órdenes + Tareas -->
+  <div class="middle-grid">
+
+    <div class="card-box">
+      <div class="card-box-header">
+        <div>
+          <div class="card-box-title">Órdenes de Compra Recientes</div>
+          <div class="card-box-sub">Últimas 5 órdenes registradas en el sistema</div>
+        </div>
+        <a routerLink="/compras/lista" class="btn-ver-todas">Ver todas</a>
+      </div>
+
+      <div class="orden-list">
+        @for (orden of ordenes; track orden.codigo) {
+          <div class="orden-row">
+            <div class="orden-icon"><i class="bi bi-cart3"></i></div>
+            <div class="orden-info">
+              <div class="orden-codigo">{{ orden.codigo }}</div>
+              <div class="orden-proveedor">{{ orden.proveedor }}</div>
+            </div>
+            <div class="orden-right">
+              <div class="orden-monto">S/ {{ orden.monto | number:'1.2-2' }}</div>
+              <span class="badge {{ estadoBadge(orden.estado) }}">{{ orden.estado }}</span>
+              <div class="orden-fecha">{{ orden.fecha }}</div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="card-box">
+      <div class="card-box-header">
+        <div class="card-box-title">Tareas Pendientes</div>
+        <div class="card-box-sub">Actividades que requieren su atención</div>
+      </div>
+      <div class="tarea-list">
+        @for (tarea of tareas; track tarea.descripcion) {
+          <div class="tarea-row">
+            <i class="bi bi-clock tarea-icon"></i>
+            <div class="tarea-info">
+              <div class="tarea-desc">{{ tarea.descripcion }}</div>
+              <div class="tarea-meta">
+                <span class="{{ prioridadClass(tarea.prioridad) }}">{{ tarea.prioridad }}</span>
+                <span class="tarea-cuando">{{ tarea.cuando }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Alertas Stock -->
+  <div class="card-box">
+    <div class="card-box-header">
+      <div>
+        <div class="card-box-title">
+          <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+          Alertas de Stock Bajo
+        </div>
+        <div class="card-box-sub">Productos que requieren reabastecimiento</div>
+      </div>
+      <button class="btn-ver-todas">Generar Requerimiento</button>
+    </div>
+    <div class="stock-grid">
+      @for (s of alertasStock; track s.producto) {
+        <div class="stock-card">
+          <div class="stock-nombre">{{ s.producto }}</div>
+          <div class="stock-detalle">
+            <span class="stock-label">Stock actual</span>
+            <span class="stock-actual">{{ s.actual }} {{ s.unidad }}</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" [style.width.%]="s.porcentaje"></div>
+          </div>
+          <div class="stock-minimo">Mínimo: {{ s.minimo }} {{ s.unidad }}</div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Accesos Rápidos -->
+  <div class="accesos-grid">
+    @for (acc of accesosRapidos; track acc.label) {
+      <a class="acceso-card" [routerLink]="acc.url">
+        <div class="acceso-icon" [style.background-color]="acc.color + '22'">
+          <i class="bi {{ acc.icon }}" [style.color]="acc.color"></i>
+        </div>
+        <div class="acceso-label">{{ acc.label }}</div>
+        <div class="acceso-sub">{{ acc.sub }}</div>
+      </a>
+    }
+  </div>
+
+</div>

@@ -1,11 +1,8 @@
-<app-header></app-header>
-
-<div class="d-flex">
+<div class="layout-wrapper">
   <app-sidebar></app-sidebar>
-  
-  <main class="flex-grow-1 p-4">
-    <router-outlet></router-outlet> 
-  </main>
+  <div class="layout-content">
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
 </div>
-
-<app-footer></app-footer>
