@@ -1,5 +1,56 @@
-<ul class="dropdown-menu">
-  <li><h6 class="dropdown-header">SUDAB</h6></li>
-  <li><a class="dropdown-item" href="#">Action</a></li>
-  <li><a class="dropdown-item" href="#">Another action</a></li>
-</ul>
+<!-- Header del layout principal -->
+<header class="main-header d-flex justify-content-between align-items-center">
+  <!-- Lado izquierdo del header con el botón de menú y el título -->
+   <!-- Botón para togglear el sidebar en pantallas pequeñas -->
+  <div class="header-left d-flex align-items-center gap-3">
+    <button class="btn-action btn-toggle-sidebar" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas">
+      <i class="bi bi-list"></i>
+    </button>
+    <div class="header-title">
+      <span class="fw-bold text-uppercase">SUDAB</span>
+    </div>
+  </div>
+<!-- Lado derecho del header con notificaciones y perfil de usuario -->
+  <div class="header-actions d-flex align-items-center">
+    <div class="dropdown me-3">
+      <button class="btn-action" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-bell"></i>
+        <span class="badge-alert"></span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end notification-menu">
+        <li><h6 class="dropdown-header">Notificaciones</h6></li>
+        <li><a class="dropdown-item" href="#">🔔 Nuevo requerimiento por autorizar</a></li>
+        <li><a class="dropdown-item" href="#">📦 Recepción pendiente en Kárdex</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item text-center small text-primary" href="#">Ver todas</a></li>
+      </ul>
+    </div>
+<!-- Perfil de usuario con dropdown para opciones de cuenta -->
+    <div class="dropdown">
+      <button class="btn-user-profile d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <div class="profile-avatar-circle">
+          {{ inicialNombre }}
+        </div>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end user-dropdown-card">
+        <li>
+          <div class="dropdown-user-details">
+            <div class="fw-bold">{{ nombreCompleto }}</div>
+            <div class="text-muted small">{{ cargo }}</div>
+          </div>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="#" (click)="$event.preventDefault()"><i class="bi bi-person me-2"></i> Mi Perfil</a></li>
+        <li><a class="dropdown-item" href="#" (click)="$event.preventDefault()"><i class="bi bi-gear me-2"></i> Configuración</a></li>
+        <li>
+          <button class="dropdown-item" (click)="toggleTheme()">
+            <i class="bi" [ngClass]="isDarkMode ? 'bi-sun-fill text-warning me-2' : 'bi-moon-fill text-primary me-2'"></i>
+            {{ isDarkMode ? 'Modo Claro' : 'Modo Oscuro' }}
+          </button>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li><button class="dropdown-item text-danger" (click)="logout()"><i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión</button></li>
+      </ul>
+    </div>
+  </div>
+</header>

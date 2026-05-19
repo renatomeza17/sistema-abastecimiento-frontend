@@ -22,8 +22,6 @@ export const routes: Routes = [
             {path: 'admin/usuarios', component: UsuariosLista },
             {path: 'admin/usuarios/nuevo', component: UsuariosForm },
             {path: '', redirectTo: 'dashboard', pathMatch: 'full' }
-
-
         ]
 
     },

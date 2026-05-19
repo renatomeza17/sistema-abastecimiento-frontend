@@ -1,17 +1,19 @@
-<nav class="sidebar d-flex flex-column">
+<nav class="sidebar offcanvas offcanvas-start d-flex flex-column" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarOffcanvasLabel">
 
-  <!-- Logo -->
-  <div class="sidebar-brand">
-    <div class="brand-icon">
-      <i class="bi bi-boxes"></i>
+  <div class="sidebar-brand d-flex justify-content-between align-items-center w-100">
+    <div class="d-flex align-items-center gap-2">
+      <!-- Icono de la marca -->
+      <div class="brand-icon">
+        <i class="bi bi-boxes"></i>
+      </div>
+      <div>
+        <div class="brand-title">SUDAB</div>
+        <div class="brand-subtitle">UNMSM</div>
+      </div>
     </div>
-    <div>
-      <div class="brand-title">SUDAB</div>
-      <div class="brand-subtitle">UNMSM</div>
-    </div>
+    <button type="button" class="btn-close btn-close-white text-reset d-lg-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
 
-  <!-- Menú -->
   <div class="sidebar-menu flex-grow-1">
     <div class="menu-section-label">MENÚ PRINCIPAL</div>
 
@@ -22,7 +24,8 @@
           <li class="menu-item">
             <a class="menu-link"
                [routerLink]="item.children[0].url"
-               routerLinkActive="active">
+               routerLinkActive="active"
+               data-bs-dismiss="offcanvas">
               <i class="bi {{ item.icon }}"></i>
               <span>{{ item.label }}</span>
             </a>
@@ -47,7 +50,8 @@
                   <li>
                     <a class="submenu-link"
                        [routerLink]="child.url"
-                       routerLinkActive="active-sub">
+                       routerLinkActive="active-sub"
+                       data-bs-dismiss="offcanvas">
                       {{ child.label }}
                     </a>
                   </li>
@@ -58,18 +62,6 @@
         }
       }
     </ul>
-  </div>
-
-  <!-- Footer -->
-  <div class="sidebar-footer">
-    <div class="user-avatar">{{ nombreCompleto.charAt(0) }}</div>
-    <div class="user-info">
-      <div class="user-name">{{ nombreCompleto }}</div>
-      <div class="user-role">{{ cargo }}</div>
-    </div>
-    <button class="btn-logout" (click)="logout()" title="Cerrar sesión">
-      <i class="bi bi-box-arrow-right"></i>
-    </button>
   </div>
 
 </nav>

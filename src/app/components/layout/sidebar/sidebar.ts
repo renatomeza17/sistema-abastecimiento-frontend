@@ -18,8 +18,6 @@ interface MenuItem {
 })
 export class Sidebar implements OnInit {
 
-  nombreCompleto = '';
-  cargo = '';
   menuItems: MenuItem[] = [];
   openMenus: { [key: string]: boolean } = {};
 
@@ -97,10 +95,6 @@ export class Sidebar implements OnInit {
   constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-    this.nombreCompleto = this.authService.getNombreCompleto();
-    const roles = this.authService.getRoles();
-    this.cargo = roles.length > 0 ? roles[0] : 'Usuario';
-
     const modulos = this.authService.getModulos();
     const vistos = new Set<string>();
 
@@ -125,9 +119,5 @@ export class Sidebar implements OnInit {
 
   isOpen(label: string): boolean {
     return this.openMenus[label];
-  }
-
-  logout(): void {
-    this.authService.logout();
   }
 }
