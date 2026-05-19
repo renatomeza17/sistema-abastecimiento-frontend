@@ -1,1 +1,71 @@
+<<<<<<< Updated upstream
 <p>sidebar works!</p>
+=======
+<nav class="sidebar offcanvas offcanvas-start d-flex flex-column" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarOffcanvasLabel">
+
+  <div class="sidebar-brand d-flex justify-content-between align-items-center w-100">
+    <div class="d-flex align-items-center gap-2">
+      <!-- Icono de la marca -->
+      <div class="brand-icon">
+        <i class="bi bi-boxes"></i>
+      </div>
+      <div>
+        <div class="brand-title">SUDAB</div>
+        <div class="brand-subtitle">UNMSM</div>
+      </div>
+    </div>
+    <button type="button" class="btn-close btn-close-white text-reset d-lg-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+
+  <div class="sidebar-menu flex-grow-1">
+    <div class="menu-section-label">MENÚ PRINCIPAL</div>
+
+    <ul class="menu-list">
+      @for (item of menuItems; track item.label) {
+
+        @if (item.children.length === 1) {
+          <li class="menu-item">
+            <a class="menu-link"
+               [routerLink]="item.children[0].url"
+               routerLinkActive="active"
+               data-bs-dismiss="offcanvas">
+              <i class="bi {{ item.icon }}"></i>
+              <span>{{ item.label }}</span>
+            </a>
+          </li>
+
+        } @else {
+          <li class="menu-item">
+            <button class="menu-link menu-toggle w-100"
+                    (click)="toggleMenu(item.label)"
+                    [class.open]="isOpen(item.label)">
+              <i class="bi {{ item.icon }}"></i>
+              <span class="flex-grow-1 text-start">{{ item.label }}</span>
+              <i class="bi"
+                 [class.bi-chevron-down]="!isOpen(item.label)"
+                 [class.bi-chevron-up]="isOpen(item.label)">
+              </i>
+            </button>
+
+            @if (isOpen(item.label)) {
+              <ul class="submenu">
+                @for (child of item.children; track child.url) {
+                  <li>
+                    <a class="submenu-link"
+                       [routerLink]="child.url"
+                       routerLinkActive="active-sub"
+                       data-bs-dismiss="offcanvas">
+                      {{ child.label }}
+                    </a>
+                  </li>
+                }
+              </ul>
+            }
+          </li>
+        }
+      }
+    </ul>
+  </div>
+
+</nav>
+>>>>>>> Stashed changes
