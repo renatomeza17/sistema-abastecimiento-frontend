@@ -6,9 +6,6 @@ import { Component } from '@angular/core';
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
-<<<<<<< Updated upstream
-export class Sidebar {}
-=======
 export class Sidebar implements OnInit {
 
   menuItems: MenuItem[] = [];
@@ -114,4 +111,3 @@ export class Sidebar implements OnInit {
     return this.openMenus[label];
   }
 }
->>>>>>> Stashed changes
