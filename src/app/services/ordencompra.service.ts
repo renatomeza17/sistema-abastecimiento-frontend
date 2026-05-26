@@ -14,6 +14,12 @@ export class OrdencompraService {
 
   constructor(private http: HttpClient) { }
 
+
+  crearOrden(orden: any): Observable<OrdenResponseDTO> {
+    return this.http.post<OrdenResponseDTO>(`${this.apiUrl}/crearOrden`, orden);
+  }
+
+  
   // 1. Conseguir todas las órdenes para que las consuman tus bandejas
   listarTodas(): Observable<OrdenResponseDTO[]> {
     return this.http.get<OrdenResponseDTO[]>(this.apiUrl);
@@ -22,6 +28,11 @@ export class OrdencompraService {
   // 2. Buscar una orden por ID para el visor de detalles o impresión
   consultarPorId(id: number): Observable<OrdenResponseDTO> {
     return this.http.get<OrdenResponseDTO>(`${this.apiUrl}/${id}`);
+  }
+
+  // NUEVO MÉTODO: Conecta con el RequestParam de Spring Boot
+  listarPorProveedor(idProveedor: number): Observable<OrdenResponseDTO[]> {
+    return this.http.get<OrdenResponseDTO[]>(`${this.apiUrl}/listarPorProveedor?idProveedor=${idProveedor}`);
   }
 
   // 3. Acción del Director Administrativo

@@ -50,7 +50,7 @@ export class Sidebar implements OnInit {
       icon: 'bi-cart3',
       children: [
         { label: 'Nueva Orden', url: '/compras/nueva' },
-        { label: 'Lista de Órdenes', url: '/ordenes' },
+        { label: 'Lista de Órdenes', url: '/compras/lista' },
         { label: 'Autorización OC', url: '/compras/autorizacion' },
         { label: 'Reprogramar/Cancelar', url: '/compras/reprogramar' },
       ],

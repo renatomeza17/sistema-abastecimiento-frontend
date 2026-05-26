@@ -8,6 +8,7 @@ import { MainLayout } from './components/layout/main-layout/main-layout';
 import { authGuard } from './guards/auth-guard';
 import { OrdenLista } from './components/pages/orden-lista/orden-lista';
 import { OrdenDetalle } from './components/pages/orden-detalle/orden-detalle';
+import { OrdenForm } from './components/pages/orden-form/orden-form';
 
 export const routes: Routes = [
     //Ruta independiente
@@ -23,8 +24,9 @@ export const routes: Routes = [
             {path: 'inventario', component: Inventario },
             {path: 'admin/usuarios', component: UsuariosLista },
             {path: 'admin/usuarios/nuevo', component: UsuariosForm },
-            {path: 'ordenes', component: OrdenLista },
-            {path: 'ordenes/:id', component: OrdenDetalle }, // Ruta para ver detalles de una orden específica
+            {path: 'compras/lista', component: OrdenLista },
+            { path: 'compras/nueva', component: OrdenForm },
+            {path: 'compras/ordenes/:id', component: OrdenDetalle }, // Ruta para ver detalles de una orden específica
             {path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
 
