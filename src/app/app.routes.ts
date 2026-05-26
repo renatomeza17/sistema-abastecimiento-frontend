@@ -6,6 +6,8 @@ import { UsuariosLista } from './components/admin/usuarios-lista/usuarios-lista'
 import { UsuariosForm } from './components/admin/usuarios-form/usuarios-form';
 import { MainLayout } from './components/layout/main-layout/main-layout';
 import { authGuard } from './guards/auth-guard';
+import { OrdenLista } from './components/pages/orden-lista/orden-lista';
+import { OrdenDetalle } from './components/pages/orden-detalle/orden-detalle';
 
 export const routes: Routes = [
     //Ruta independiente
@@ -21,6 +23,8 @@ export const routes: Routes = [
             {path: 'inventario', component: Inventario },
             {path: 'admin/usuarios', component: UsuariosLista },
             {path: 'admin/usuarios/nuevo', component: UsuariosForm },
+            {path: 'ordenes', component: OrdenLista },
+            {path: 'ordenes/:id', component: OrdenDetalle }, // Ruta para ver detalles de una orden específica
             {path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
 

@@ -1,0 +1,130 @@
+<div class="container mt-4 mb-5">
+  
+  <div *ngIf="cargando" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando datos de la orden...</span>
+    </div>
+    <p class="mt-2 text-muted">Consultando servidor central SUDAB...</p>
+  </div>
+
+  <div class="card shadow" *ngIf="!cargando && orden">
+    
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center d-print-none">
+      <h4 class="mb-0"><i class="bi bi-file-earmark-text"></i> Visor de Documento Oficial</h4>
+      <span class="badge bg-light text-primary fw-bold">Estado: {{ orden.estado }}</span>
+    </div>
+
+    <div class="card-body p-4 id-seccion-imprimir">
+      
+      <div class="row border-bottom pb-3 mb-4">
+        <div class="col-8">
+          <h3 class="text-uppercase fw-bold mb-1">Universidad Nacional de Ingeniería</h3>
+          <h5 class="text-muted mb-1">Oficina de Administración - Unidad de Abastecimiento</h5>
+          <p class="small text-secondary mb-0">Sistema de Control de Adquisiciones | SUDAB</p>
+        </div>
+        <div class="col-4 text-end">
+          <div class="border p-2 bg-light">
+            <small class="text-uppercase d-block text-muted">Orden de Compra N°</small>
+            <span class="fs-4 fw-bold text-danger">{{ orden.codigo }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <table class="table table-sm table-borderless">
+            <tr>
+              <td class="fw-bold text-muted" style="width: 35%;">Fecha Emisión:</td>
+              <td>{{ orden.fechaCreacion | date:'dd/MM/yyyy' }}</td>
+            </tr>
+            <tr>
+              <td class="fw-bold text-muted">Requerimiento:</td>
+              <td><span class="badge bg-secondary font-monospace">{{ orden.codigoRequerimiento }}</span></td>
+            </tr>
+            <tr>
+              <td class="fw-bold text-muted">Moneda:</td>
+              <td>Soles (S/.)</td>
+            </tr>
+          </table>
+        </div>
+        
+        <div class="col-md-6 border-start">
+          <h6 class="text-uppercase fw-bold text-primary mb-2">Proveedor Adjudicado</h6>
+          <p class="mb-1"><strong>Razón Social:</strong> {{ orden.nombreProveedor }}</p>
+          <p class="mb-1"><strong>RUC:</strong> {{ orden.rucProveedor }}</p>
+        </div>
+      </div>
+
+      <h5 class="fw-bold mb-2 text-uppercase bg-light p-2 border-start border-primary border-3">Bienes / Materiales Solicitados</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+          <thead class="table-dark text-center">
+            <tr>
+              <th style="width: 5%;">Item</th>
+              <th style="width: 55%;" class="text-start">Descripción del Producto</th>
+              <th style="width: 12%;">Cantidad</th>
+              <th style="width: 13%;">P. Unitario</th>
+              <th style="width: 15%;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of orden.detalles; let i = index">
+              <td class="text-center font-monospace">{{ i + 1 }}</td>
+              <td>
+                <div class="fw-bold">{{ item.nombreProducto }}</div>
+                <small class="text-muted">ID Producto: #{{ item.productoId }}</small>
+              </td>
+              <td class="text-center font-monospace">{{ item.cantidad }}</td>
+              <td class="text-end font-monospace">S/. {{ item.precioUnitario | number:'1.2-2' }}</td>
+              <td class="text-end font-monospace fw-bold text-success">
+                S/. {{ (item.cantidad * item.precioUnitario) | number:'1.2-2' }}
+              </td>
+            </tr>
+            
+            <tr class="table-light">
+              <td colspan="4" class="text-end text-uppercase fw-bold">Total Orden de Compra:</td>
+              <td class="text-end font-monospace fw-bold fs-5 text-primary bg-white border-primary">
+                S/. {{ orden.montoTotal | number:'1.2-2' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="row mt-5 pt-4 text-center">
+        <div class="col-6">
+          <div class="mx-auto border-top border-dark pt-2" style="width: 70%;">
+            <p class="mb-0 small fw-bold">Jefe de la Unidad de Abastecimiento</p>
+            <p class="small text-muted mb-0">Oficina de Control SUDAB - UNI</p>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="mx-auto border-top border-dark pt-2" style="width: 70%;">
+            <p class="mb-0 small fw-bold">Director Administrativo</p>
+            <p class="small text-muted mb-0">Autorización Presupuestal</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="card-footer bg-light d-flex justify-content-between d-print-none">
+      <button (click)="regresar()" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver a la Bandeja
+      </button>
+      
+      <button (click)="imprimirDocumento()" class="btn btn-dark">
+        <i class="bi bi-printer"></i> Imprimir / Guardar PDF
+      </button>
+    </div>
+
+  </div>
+
+  <div class="alert alert-danger" role="alert" *ngIf="!cargando && !orden">
+    <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Error de referencia</h4>
+    <p>La orden de compra solicitada no existe o no pudo ser recuperada desde el servidor PostgreSQL de Neon.</p>
+    <hr>
+    <button (click)="regresar()" class="btn btn-danger">Volver a la Lista Principal</button>
+  </div>
+
+</div>
