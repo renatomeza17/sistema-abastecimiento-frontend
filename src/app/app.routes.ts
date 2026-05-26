@@ -13,6 +13,7 @@ export const routes: Routes = [
   // Ruta independiente
   { path: 'login', component: Login },
 
+<<<<<<< HEAD
   // Rutas con MainLayout (Sidebar + Navbar)
   {
     path: '',
@@ -38,3 +39,24 @@ export const routes: Routes = [
   // Comodín para rutas no encontradas (Opcional pero recomendado)
   { path: '**', redirectTo: 'login' }
 ];
+=======
+    //Ruta con MainLayout
+    {
+        path:'',
+        component: MainLayout,
+        canActivate: [authGuard], // Aquí puedes agregar guardias de ruta si es necesario
+        children: [ 
+            {path: 'dashboard', component: Dashboard },
+            {path: 'inventario', component: Inventario },
+            {path: 'admin/usuarios', component: UsuariosLista },
+            {path: 'admin/usuarios/nuevo', component: UsuariosForm },
+            {path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+        ]
+
+    },
+
+    //Ruta por defecto si no encuentra nada
+    {path: '**', redirectTo: 'login' }
+
+];
+>>>>>>> 3b7b9e694748a57a990c396bd8736e2f3fa0baf2

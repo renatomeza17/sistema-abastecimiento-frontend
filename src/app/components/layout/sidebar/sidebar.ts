@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+<<<<<<< HEAD
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
@@ -8,6 +9,11 @@ interface MenuItem {
   icon: string;
   children: { label: string; url: string }[];
 }
+=======
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { AuthService } from '../../../services/auth.service'; /* Ajusta los '../' según tu ruta real al servicio */
+>>>>>>> 3b7b9e694748a57a990c396bd8736e2f3fa0baf2
 
 @Component({
   selector: 'app-sidebar',
@@ -18,8 +24,11 @@ interface MenuItem {
 })
 export class Sidebar implements OnInit {
 
+<<<<<<< HEAD
   nombreCompleto = '';
   cargo = '';
+=======
+>>>>>>> 3b7b9e694748a57a990c396bd8736e2f3fa0baf2
   menuItems: MenuItem[] = [];
   openMenus: { [key: string]: boolean } = {};
 
@@ -34,8 +43,12 @@ export class Sidebar implements OnInit {
       icon: 'bi-people',
       children: [
         { label: 'Gestión de Usuarios', url: '/admin/usuarios' },
+<<<<<<< HEAD
         // Corregido: Ahora apunta a la ruta que configuramos en app.routes.ts
         { label: 'Roles y Permisos', url: '/admin/roles' }, 
+=======
+        { label: 'Roles y Permisos', url: '/admin/roles' },
+>>>>>>> 3b7b9e694748a57a990c396bd8736e2f3fa0baf2
       ],
     },
     REQUERIMIENTOS: {
@@ -98,15 +111,21 @@ export class Sidebar implements OnInit {
   constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
+<<<<<<< HEAD
     this.nombreCompleto = this.authService.getNombreCompleto();
     const roles = this.authService.getRoles();
     this.cargo = roles.length > 0 ? roles[0] : 'Usuario';
 
+=======
+>>>>>>> 3b7b9e694748a57a990c396bd8736e2f3fa0baf2
     const modulos = this.authService.getModulos();
     const vistos = new Set<string>();
 
     modulos.forEach(mod => {
+<<<<<<< HEAD
       // Importante: Asegúrate que el backend envíe "USUARIOS" o "ADMINISTRACION"
+=======
+>>>>>>> 3b7b9e694748a57a990c396bd8736e2f3fa0baf2
       const key = mod.descripcion.toUpperCase();
       const item = this.menuMap[key];
       if (item && !vistos.has(key)) {
@@ -126,6 +145,7 @@ export class Sidebar implements OnInit {
   }
 
   isOpen(label: string): boolean {
+<<<<<<< HEAD
     return !!this.openMenus[label];
   }
 
@@ -133,3 +153,8 @@ export class Sidebar implements OnInit {
     this.authService.logout();
   }
 }
+=======
+    return this.openMenus[label];
+  }
+}
+>>>>>>> 3b7b9e694748a57a990c396bd8736e2f3fa0baf2
