@@ -1,0 +1,19 @@
+@media print {
+  /* Oculta todo el entorno web de Angular (menús, navbars, footer global) */
+  .d-print-none, app-header, app-footer, nav, .navbar, .btn {
+    display: none !important;
+  }
+
+  /* Fuerza a la tarjeta a expandirse limpia sin bordes de caja */
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}

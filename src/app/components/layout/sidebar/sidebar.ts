@@ -52,7 +52,7 @@ export class Sidebar implements OnInit {
       icon: 'bi-cart3',
       children: [
         { label: 'Nueva Orden', url: '/compras/nueva' },
-        { label: 'Lista de Órdenes', url: '/compras/lista' },
+        { label: 'Lista de Órdenes', url: '/ordenes' },
         { label: 'Autorización OC', url: '/compras/autorizacion' },
         { label: 'Reprogramar/Cancelar', url: '/compras/reprogramar' },
       ],
@@ -102,6 +102,8 @@ export class Sidebar implements OnInit {
     this.cargo = roles.length > 0 ? roles[0] : 'Usuario';
 
     const modulos = this.authService.getModulos();
+      console.log('Módulos del usuario:', modulos); // ← agrega esto
+      console.log('Keys del menuMap:', Object.keys(this.menuMap)); // ← y esto
     const vistos = new Set<string>();
 
     modulos.forEach(mod => {
@@ -131,3 +133,6 @@ export class Sidebar implements OnInit {
     this.authService.logout();
   }
 }
+
+
+

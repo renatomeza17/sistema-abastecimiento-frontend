@@ -16,6 +16,7 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap(res => {
+        console.log('Respuesta del login:', res);
         if (res.token) {
           localStorage.setItem('token', res.token);
           localStorage.setItem('username', res.username);
@@ -59,4 +60,5 @@ export class AuthService {
   hasRole(role: string): boolean {
     return this.getRoles().includes(role);
   }
+  
 }
