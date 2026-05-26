@@ -1,1 +1,70 @@
-<p>usuarios-lista works!</p>
+<div class="gestion-container">
+  <div class="header-section">
+    <div>
+      <h2 class="title">Gestión de Usuarios</h2>
+      <p class="subtitle">Administre los usuarios del sistema SUDAB</p>
+    </div>
+    <button class="btn-nuevo">+ Nuevo Usuario</button>
+  </div>
+
+  <div class="card-table">
+    <div class="table-info">
+      <h3>Lista de Usuarios</h3>
+      <span>Total: {{ usuarios?.length || 0 }} usuarios registrados</span>
+    </div>
+
+    <table class="user-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Documento / Correo</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of usuarios; track u.idUsuario) {
+          <tr>
+            <td>
+              <div class="user-cell">
+                <div class="avatar">{{ getAvatar(u) }}</div>
+                <div class="user-info">
+                  <span class="name">
+                    {{ u.persona.nombres }} {{ u.persona.apellidoPaterno }} {{ u.persona.apellidoMaterno }}
+                  </span>
+                  <span class="username">@{{ u.username }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="contact-cell">
+                <span><i class="bi bi-card-text"></i> {{ u.persona.numDocumento }}</span>
+                <span class="text-muted"><i class="bi bi-envelope"></i> {{ u.email }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="roles-list">
+                @for (r of u.roles; track r.idRol) {
+                  <span class="badge-rol">{{ r.nombre }}</span>
+                } @empty {
+                  <span class="text-muted" style="font-size: 0.8rem;">Sin rol</span>
+                }
+              </div>
+            </td>
+            <td><span class="status-pill active">Activo</span></td>
+            <td>
+              <button class="btn-action"><i class="bi bi-three-dots-vertical"></i></button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 20px;">
+              No se encontraron usuarios o el servidor no responde.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

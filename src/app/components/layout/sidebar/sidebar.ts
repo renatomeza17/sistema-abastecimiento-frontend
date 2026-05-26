@@ -34,7 +34,8 @@ export class Sidebar implements OnInit {
       icon: 'bi-people',
       children: [
         { label: 'Gestión de Usuarios', url: '/admin/usuarios' },
-        { label: 'Roles y Permisos', url: '/admin/roles' },
+        // Corregido: Ahora apunta a la ruta que configuramos en app.routes.ts
+        { label: 'Roles y Permisos', url: '/admin/roles' }, 
       ],
     },
     REQUERIMIENTOS: {
@@ -105,6 +106,7 @@ export class Sidebar implements OnInit {
     const vistos = new Set<string>();
 
     modulos.forEach(mod => {
+      // Importante: Asegúrate que el backend envíe "USUARIOS" o "ADMINISTRACION"
       const key = mod.descripcion.toUpperCase();
       const item = this.menuMap[key];
       if (item && !vistos.has(key)) {
@@ -124,7 +126,7 @@ export class Sidebar implements OnInit {
   }
 
   isOpen(label: string): boolean {
-    return this.openMenus[label];
+    return !!this.openMenus[label];
   }
 
   logout(): void {
