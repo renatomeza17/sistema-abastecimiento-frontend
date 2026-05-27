@@ -43,3 +43,4 @@ export const routes: Routes = [
   // Comodín para rutas no encontradas (Opcional pero recomendado)
   { path: '**', redirectTo: 'login' }
 ];
+

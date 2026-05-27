@@ -1,0 +1,193 @@
+<div class="container-fluid py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-0 fw-bold">Cuadro Comparativo de Proformas</h2>
+      <small class="text-muted">Evaluación y selección de la mejor oferta</small>
+    </div>
+    <span class="badge bg-warning text-dark px-3 py-2 fw-bold">Jefe de Abastecimiento</span>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Columna izquierda: lista de requerimientos -->
+    <div class="col-xl-4 col-lg-5">
+      <div class="card shadow-sm h-100">
+        <div class="card-header py-3">
+          <h5 class="mb-0 fs-6 fw-bold">Requerimientos Emitidos</h5>
+        </div>
+        <div class="card-body p-2">
+
+          @if (cargandoReqs) {
+            <div class="text-center py-4 text-muted small">
+              <div class="spinner-border spinner-border-sm me-1"></div> Cargando...
+            </div>
+          }
+
+          @if (!cargandoReqs && requerimientos.length === 0) {
+            <div class="text-center py-4 text-muted small">
+              No hay requerimientos en el sistema.
+            </div>
+          }
+
+          @if (!cargandoReqs) {
+            <div class="list-group list-group-flush">
+              @for (req of requerimientos; track req.idRequerimiento) {
+                <button class="list-group-item list-group-item-action py-3"
+                        [class.active]="reqSeleccionado?.idRequerimiento === req.idRequerimiento"
+                        (click)="verProformas(req)">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="me-2">
+                      <div class="fw-bold small">{{ req.codigo }}</div>
+                      <small class="opacity-75 d-block text-truncate" style="max-width:180px">
+                        {{ req.descripcion }}
+                      </small>
+                    </div>
+                    <span class="badge rounded-pill small text-uppercase"
+                          [ngClass]="getEstadoClass(req.estado)">
+                      {{ req.estado }}
+                    </span>
+                  </div>
+                </button>
+              }
+            </div>
+          }
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna derecha: proformas -->
+    <div class="col-xl-8 col-lg-7">
+      <div class="card shadow-sm h-100">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fs-6 fw-bold">Ofertas Comerciales Recibidas</h5>
+          @if (reqSeleccionado) {
+            <span class="small text-muted">
+              {{ reqSeleccionado.codigo }} —
+              {{ proformasCandidatas.length }} proforma(s)
+            </span>
+          }
+        </div>
+        <div class="card-body">
+
+          @if (mensajeExito) {
+            <div class="alert alert-success py-2 small mb-3">
+              <i class="bi bi-check-circle me-1"></i> {{ mensajeExito }}
+            </div>
+          }
+          @if (mensajeError) {
+            <div class="alert alert-danger py-2 small mb-3">
+              <i class="bi bi-exclamation-circle me-1"></i> {{ mensajeError }}
+            </div>
+          }
+
+          @if (!reqSeleccionado) {
+            <div class="text-center py-5 text-muted">
+              <i class="bi bi-arrow-left-right fs-1 d-block mb-3 opacity-20"></i>
+              <p class="fw-semibold mb-1">Selecciona un requerimiento</p>
+              <small class="opacity-75">
+                Elige un requerimiento de la izquierda para ver sus proformas.
+              </small>
+            </div>
+          }
+
+          @if (reqSeleccionado && cargandoProformas) {
+            <div class="text-center py-5 text-muted">
+              <div class="spinner-border spinner-border-sm me-2"></div> Cargando proformas...
+            </div>
+          }
+
+          @if (reqSeleccionado && !cargandoProformas && proformasCandidatas.length === 0) {
+            <div class="alert alert-info border-0 d-flex align-items-center">
+              <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+              <div>
+                <div class="fw-bold small mb-1">Sin ofertas recibidas</div>
+                <div class="small opacity-90">
+                  Ningún proveedor ha enviado proformas para este requerimiento.
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (!cargandoProformas && proformasCandidatas.length > 0) {
+            <div class="row g-3">
+              @for (prof of proformasCandidatas; track prof.idProforma) {
+                <div class="col-xl-6 col-md-12">
+                  <div class="card h-100 border-2"
+                       [class.border-success]="prof.estado === 'ELEGIDA'"
+                       [class.border-light]="prof.estado !== 'ELEGIDA'">
+
+                    <!-- Badge mejor precio -->
+                    @if (esMenorPrecio(prof) && prof.estado !== 'ELEGIDA') {
+                      <div class="card-ribbon">
+                        <span class="badge bg-warning text-dark">
+                          <i class="bi bi-star-fill me-1"></i> Mejor Precio
+                        </span>
+                      </div>
+                    }
+
+                    <div class="card-body d-flex flex-column p-3">
+                      <h5 class="fw-bold text-primary fs-6 mb-1 text-truncate">
+                        {{ prof.razonSocialProveedor }}
+                      </h5>
+                      <small class="text-muted mb-3">{{ prof.codigo }}</small>
+
+                      <!-- Precio total -->
+                      <div class="text-center py-3 px-2 rounded bg-light mb-3">
+                        <div class="small text-muted text-uppercase mb-1">Total Ofertado</div>
+                        <div class="fs-3 fw-bold text-success">
+                          S/. {{ prof.precioTotal | number:'1.2-2' }}
+                        </div>
+                      </div>
+
+                      <!-- Detalle de productos -->
+                      <div class="flex-grow-1 mb-3 overflow-auto" style="max-height:160px">
+                        @for (p of prof.productos; track p.idProducto) {
+                          <div class="d-flex justify-content-between small
+                                      border-bottom py-1 px-1">
+                            <span class="text-truncate pe-2" style="max-width:160px">
+                              {{ p.nombreProducto }}
+                              <span class="text-muted">x{{ p.cantidad }}</span>
+                            </span>
+                            <span class="fw-bold text-nowrap">
+                              S/. {{ p.precioUnitario | number:'1.2-2' }}
+                            </span>
+                          </div>
+                        }
+                      </div>
+
+                      <!-- Estado y botón -->
+                      <div class="mb-2 text-center">
+                        <span class="badge px-3 py-2 text-uppercase"
+                              [ngClass]="getEstadoClass(prof.estado)">
+                          {{ prof.estado }}
+                        </span>
+                      </div>
+
+                      <button class="btn w-100 fw-bold mt-auto"
+                              [class.btn-success]="prof.estado === 'ELEGIDA'"
+                              [class.btn-outline-primary]="prof.estado !== 'ELEGIDA'"
+                              [disabled]="prof.estado === 'ELEGIDA' ||
+                                         reqSeleccionado?.estado === 'APROBADO'"
+                              (click)="elegirProforma(prof.idProforma)">
+                        @if (prof.estado === 'ELEGIDA') {
+                          <i class="bi bi-shield-check me-1"></i> Propuesta Ganadora
+                        } @else {
+                          Seleccionar esta oferta
+                        }
+                      </button>
+
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
