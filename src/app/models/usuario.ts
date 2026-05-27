@@ -9,3 +9,6 @@ export interface Usuario {
     persona: Persona;
     roles: Rol[];
 }
+
+export type { Rol };
+

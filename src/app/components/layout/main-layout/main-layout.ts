@@ -3,10 +3,13 @@ import { RouterOutlet } from '@angular/router';
 import { Sidebar } from '../sidebar/sidebar';
 import { HeaderComponent } from '../header/header';
 
+
 @Component({
   selector: 'app-main-layout',
   standalone: true,
+
   imports: [RouterOutlet, Sidebar, HeaderComponent],
+
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.scss',
 })

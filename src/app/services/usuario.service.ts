@@ -1,39 +1,48 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Usuario } from '../models/usuario';
+import { Usuario, Rol } from '../models/usuario'; // Asegúrate de exportar 'Rol' en tu modelo
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environment/environment';
 
 @Injectable({
   providedIn: 'root',
 })
-
-
 export class UsuarioService {
   private apiUrl = `${environment.apiUrl}/usuarios`;
+  private rolesUrl = `${environment.apiUrl}/roles`; // Nueva URL para roles
 
   constructor(private http: HttpClient) {}
 
-  // Listar todos (Aquí el Interceptor ya pondrá el Token automáticamente)
+  // --- MÉTODOS DE USUARIOS ---
+
   getUsuarios(): Observable<Usuario[]> {
     return this.http.get<Usuario[]>(this.apiUrl);
   }
 
-  // Obtener por ID
   getUsuarioById(id: number): Observable<Usuario> {
     return this.http.get<Usuario>(`${this.apiUrl}/${id}`);
   }
 
-  // Crear usuario (Recibe el objeto que mapea con tu Entidad de Java)
-  createUsuario(usuario: Usuario): Observable<Usuario> {
+  createUsuario(usuario: any): Observable<Usuario> {
     return this.http.post<Usuario>(this.apiUrl, usuario);
   }
 
-  // Eliminar
+  updateUsuario(id: number, usuario: any): Observable<Usuario> {
+    return this.http.put<Usuario>(`${this.apiUrl}/${id}`, usuario);
+  }
+
   deleteUsuario(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
+  // --- MÉTODOS DE ROLES (Para tus tarjetas y selectores) ---
 
+  getRoles(): Observable<Rol[]> {
+    return this.http.get<Rol[]>(this.rolesUrl);
+  }
 
+  // Si necesitas crear un rol desde la pantalla de tarjetas
+  createRol(rol: Rol): Observable<Rol> {
+    return this.http.post<Rol>(this.rolesUrl, rol);
+  }
 }

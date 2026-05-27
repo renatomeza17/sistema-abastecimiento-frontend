@@ -3,7 +3,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+
     "rootDir": "./src",      /* CORRECCIÓN: Define la raíz exacta del código fuente de la app */
+
     "outDir": "./out-tsc/spec",
     "types": [
       "vitest/globals"

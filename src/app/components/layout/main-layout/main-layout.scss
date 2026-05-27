@@ -1,4 +1,7 @@
+
 /* CONTENEDOR RAIZ DE LA PÁGINA (.layout-wrapper) */
+
+
 .layout-wrapper {
   display: flex;             /* Mantenemos tu flujo en fila (horizontal) original. */
   min-height: 100vh;         /* Conservamos tu regla original para cubrir el alto de la pantalla. */
@@ -33,10 +36,46 @@ app-sidebar {
 
 /* ÁREA DE TRABAJO DINÁMICA (.main-content) */
 .main-content {
-  flex: 1;                   /* Conservamos tu lógica para absorber el alto restante debajo de tu Header. */
-  padding: 24px;             /* Mantiene tu margen de separación de 24px para tus páginas. */
-  overflow-y: auto;          /* Mantiene tu barra de scroll vertical interna para las páginas que tengan mucho contenido. */
+
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
 }
+
+/* CONTENEDOR RAIZ DE LA PÁGINA (.layout-wrapper) */
+.layout-wrapper {
+  display: flex;             /* Mantenemos tu flujo en fila (horizontal) original. */
+  min-height: 100vh;         /* Conservamos tu regla original para cubrir el alto de la pantalla. */
+  background-color: #f1f5f9; /* Color gris claro de fondo para el panel. */
+  width: 100vw;              /* Forzamos a que el wrapper ocupe exactamente el ancho total de la ventana. */
+  overflow-x: hidden;        /* Evita scrolls horizontales raros cuando el sidebar aparezca en la pantalla. */
+}
+
+/* ESTILOS COMPLEMENTARIOS PARA LA ETIQUETA DEL COMPONENTE SIDEBAR */
+app-sidebar {
+  position: fixed;           /* Hace que la barra flote en su propia capa por encima de la aplicación. */
+  top: 0;
+  left: 0;
+  height: 100vh;             /* Le da todo el alto vertical de la pantalla para el Offcanvas. */
+  width: 0;                  /* CORRECCIÓN CRÍTICA: Por defecto mide 0 de ancho. Así la capa invisible se encoge por completo y ya no bloquea los clics en el Header. */
+  z-index: 1050;             /* Mantiene el menú por encima del resto de elementos al abrirse. */
+  
+  /* MODIFICACIÓN: Cuando Bootstrap activa el Offcanvas agregando la clase '.show', expandimos el contenedor padre al ancho real del menú (400px o el tamaño de tu sidebar) para que se pueda ver todo el contenido interior sin asfixiarse. */
+  &:has(.show) {
+    width: 400px;            
+  }
+}
+
+/* SECCIÓN INTERNA DE CONTENIDO (.layout-content) */
+.layout-content {
+  flex: 1;                   /* Al estar el sidebar en fixed y medir 0px, este bloque toma el 100% real de la pantalla de forma automática. */
+  display: flex;
+  flex-direction: column;    /* Apila el Header (arriba) y el Main Content (abajo) en vertical de forma perfecta. */
+  overflow: hidden;          /* Mantiene la estructura blindada contra desbordamientos internos. */
+  width: 100%;               /* Asegura explícitamente que la zona de trabajo use toda la anchura del monitor. */
+}
+
+
 
 /* SOPORTE COMPLEMENTARIO PARA EL MODO OSCURO (DATA-BS-THEME="DARK") */
 [data-bs-theme="dark"] {
@@ -54,4 +93,8 @@ app-sidebar {
   .btn-close-white {
     filter: invert(1) grayscale(1) brightness(2);
   }
+
 }
+
+
+

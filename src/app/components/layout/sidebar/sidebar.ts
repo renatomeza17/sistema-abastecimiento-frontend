@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
@@ -18,6 +19,10 @@ interface MenuItem {
 })
 export class Sidebar implements OnInit {
 
+
+  nombreCompleto = '';
+  cargo = '';
+
   menuItems: MenuItem[] = [];
   openMenus: { [key: string]: boolean } = {};
 
@@ -32,7 +37,10 @@ export class Sidebar implements OnInit {
       icon: 'bi-people',
       children: [
         { label: 'Gestión de Usuarios', url: '/admin/usuarios' },
-        { label: 'Roles y Permisos', url: '/admin/roles' },
+
+        // Corregido: Ahora apunta a la ruta que configuramos en app.routes.ts
+        { label: 'Roles y Permisos', url: '/admin/roles' }, 
+
       ],
     },
     REQUERIMIENTOS: {
@@ -95,12 +103,19 @@ export class Sidebar implements OnInit {
   constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
+
+    this.nombreCompleto = this.authService.getNombreCompleto();
+    const roles = this.authService.getRoles();
+    this.cargo = roles.length > 0 ? roles[0] : 'Usuario';
+
+
     const modulos = this.authService.getModulos();
       console.log('Módulos del usuario:', modulos); // ← agrega esto
       console.log('Keys del menuMap:', Object.keys(this.menuMap)); // ← y esto
     const vistos = new Set<string>();
 
     modulos.forEach(mod => {
+
       const key = mod.descripcion.toUpperCase();
       const item = this.menuMap[key];
       if (item && !vistos.has(key)) {
@@ -120,13 +135,11 @@ export class Sidebar implements OnInit {
   }
 
   isOpen(label: string): boolean {
-    return this.openMenus[label];
+
+    return !!this.openMenus[label];
   }
 
   logout(): void {
     this.authService.logout();
   }
 }
-
-
-
