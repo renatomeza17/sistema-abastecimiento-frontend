@@ -33,6 +33,25 @@
               </select>
             </div>
             <div class="col-md-6">
+                <label class="form-label fw-medium text-secondary small">Requerimiento de Origen</label>
+                <select class="form-select text-muted" [(ngModel)]="ordenRequest.idRequerimiento" name="idRequerimiento">
+                    <option [ngValue]="null">Seleccione requerimiento base</option>
+                    @for (req of requerimientosList; track req.idRequerimiento) {
+                    <option [ngValue]="req.idRequerimiento">{{ req.codigo }} - {{ req.descripcion }}</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-6">
+            <label class="form-label fw-medium text-secondary small">Asociar Proforma Cotizada *</label>
+            <select class="form-select text-muted" [(ngModel)]="ordenRequest.idProforma" name="idProforma" (change)="onProformaChange()">
+                <option [ngValue]="null">Seleccione proforma para jalar datos de Neon</option>
+                @for (prof of proformaList; track prof.idProforma) {
+                <option [ngValue]="prof.idProforma">{{ prof.codigo }} - {{ prof.razonSocialProveedor }}</option>
+                }
+            </select>
+            </div>
+            <!-- <div class="col-md-6">
               <label class="form-label fw-medium text-secondary small">Requerimiento de Origen</label>
               <select class="form-select text-muted" [(ngModel)]="ordenRequest.idRequerimiento" name="idRequerimiento">
                 <option [ngValue]="null">Seleccione requerimiento base</option>
@@ -49,7 +68,7 @@
                   <option [ngValue]="prof.id">{{ prof.descripcion }}</option>
                 }
               </select>
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -203,13 +222,25 @@
         </div>
 
         <div class="d-flex flex-column gap-2">
+            <button type="submit" 
+                    class="btn btn-primary w-100 py-2.5 fw-bold rounded-2 text-white" 
+                    style="background-color: #003B75; border: none;" 
+                    (click)="guardarOrden()">
+                Generar Orden de Compra real
+            </button>
+            
+            <button type="button" class="btn btn-outline-secondary w-100 py-2.5 fw-medium bg-white text-dark border-light shadow-sm rounded-2" (click)="cancelar()">
+                Cancelar Operación
+            </button>
+        </div>
+        <!-- <div class="d-flex flex-column gap-2">
           <button type="button" class="btn btn-primary w-100 py-2.5 fw-bold rounded-2 text-white" style="background-color: #003B75; border: none;" [disabled]="!proveedorSeleccionado" (click)="guardarOrden()">
             Generar Orden de Compra real
           </button>
           <button type="button" class="btn btn-outline-secondary w-100 py-2.5 fw-medium bg-white text-dark border-light shadow-sm rounded-2" (click)="cancelar()">
             Cancelar Operación
           </button>
-        </div>
+        </div> -->
 
       </div>
     </div>

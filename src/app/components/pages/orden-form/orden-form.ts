@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { OrdencompraService } from '../../../services/ordencompra.service';
+import { ProformaService } from '../../../services/proforma.service';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { RequerimientoService } from '../../../services/requerimiento.service';
 
 @Component({
   selector: 'app-orden-form',
@@ -13,8 +15,8 @@ import { CommonModule } from '@angular/common';
 export class OrdenForm implements OnInit {
 // Estructura limpia para enviar a @RequestBody OrdenRequestDTO de Spring Boot
   ordenRequest: any = {
-    nroOrden: '', // Lo generará el backend o se secuencia dinámicamente
-    fechaEmision: new Date().toISOString().substring(0, 10), // Fecha de hoy automatizada
+    nroOrden: '', 
+    fechaEmision: new Date().toISOString().substring(0, 10), 
     fechaEntrega: '',
     idRequerimiento: null,
     idProforma: null,
@@ -42,8 +44,8 @@ export class OrdenForm implements OnInit {
 
   constructor(
     private ordenService: OrdencompraService,
-    // private requerimientoService: RequerimientoService, // 👈 Inyecta para jalar datos reales de Neon
-    // private proformaService: ProformaService,
+    private requerimientoService: RequerimientoService, // 👈 Inyecta para jalar datos reales de Neon
+    private proformaService: ProformaService,
     private router: Router
   ) {}
 
@@ -64,6 +66,23 @@ export class OrdenForm implements OnInit {
     //   next: (data) => this.proformaList = data,
     //   error: (err) => console.error('Error al traer proformas:', err)
     // });
+
+    this.proformaService.listarRequerimientosAprobados().subscribe({
+      next: (data) => {
+        this.requerimientosList = data;
+        console.log('Requerimientos cargados:', data);
+      },
+      error: (err) => console.error('Error al traer requerimientos:', err)
+    });
+
+    // PROFORMAS: Trae las ganadoras en estado "ELEGIDA"
+    this.proformaService.listarElegidas().subscribe({
+      next: (data) => {
+        this.proformaList = data;
+        console.log('Proformas elegidas cargadas:', data);
+      },
+      error: (err) => console.error('Error al traer proformas:', err)
+    });
   }
 
   // 2. DETECTA EL CAMBIO DE PROFORMA Y SOLICITA SUS ÍTEMS Y PROVEEDOR AL BACKEND
@@ -83,11 +102,19 @@ export class OrdenForm implements OnInit {
         console.log('Datos reales recuperados de Neon:', data);
         
         // Mapeamos el proveedor en base a la respuesta del servidor
-        this.proveedorSeleccionado = data.proveedor; 
+        this.proveedorSeleccionado = data.proveedor|| {
+          razonSocial: data.razonSocialProveedor || 'Razón Social',
+          ruc: data.rucProveedor || '00000000000',
+          direccion: data.direccionProveedor || 'Dirección Fiscal',
+          contacto: data.contactoProveedor || 'Persona de Contacto',
+          telefono: data.telefonoProveedor || 'N/A'
+        }; 
         
         // Autocompletamos los campos del formulario con los acuerdos de la proforma
         this.ordenRequest.plazoEntrega = data.plazoEntrega || '15 días hábiles';
         this.ordenRequest.garantia = data.garantia || '12 meses';
+
+        const listaDetalles = data.items || data.productos || data.detalles || [];
 
         // Mapeamos los ítems dinámicos de la base de datos a la tabla
         this.items = data.items.map((item: any, index: number) => ({
@@ -132,6 +159,13 @@ export class OrdenForm implements OnInit {
 
   // 4. POSTEA EL PAYLOAD COMPLETO A TU CONTROLADOR DE SPRING BOOT
   guardarOrden(): void {
+
+    console.log('Campos actuales del Payload antes de validar:', {
+      idProforma: this.ordenRequest.idProforma,
+      fechaEntrega: this.ordenRequest.fechaEntrega,
+      lugarEntrega: this.ordenRequest.lugarEntrega
+    });
+    
     if (!this.ordenRequest.idProforma || !this.ordenRequest.fechaEntrega || !this.ordenRequest.lugarEntrega) {
       alert('Por favor, completa los campos requeridos: Proforma, Fecha y Lugar de Entrega.');
       return;
@@ -139,11 +173,24 @@ export class OrdenForm implements OnInit {
 
     // Unificamos el formulario básico con las listas dinámicas e importes numéricos finales
     const payloadFinal = {
-      ...this.ordenRequest,
-      subtotal: this.subtotal,
-      igv: this.igv,
-      total: this.total,
-      items: this.items // Envía el desglose de productos al backend
+
+    idProforma: this.ordenRequest.idProforma,
+    idRequerimiento: this.ordenRequest.idRequerimiento,
+    fechaEntrega: this.ordenRequest.fechaEntrega,
+    formaPago: this.ordenRequest.formaPago,
+    plazoEntrega: this.ordenRequest.plazoEntrega,
+    garantia: this.ordenRequest.garantia,
+    lugarEntrega: this.ordenRequest.lugarEntrega,
+    observaciones: this.ordenRequest.observaciones,
+    montoTotal: this.total, // El total calculado con el 18% del IGV
+    subtotal: this.subtotal,
+    igv: this.igv,
+    items: this.items // Envía la lista de repuestos/insumos mapeados de Neon
+        // ...this.ordenRequest,
+        // subtotal: this.subtotal,
+        // igv: this.igv,
+        // total: this.total,
+        // items: this.items // Envía el desglose de productos al backend
     };
 
     console.log('Payload JSON real enviado al POST:', payloadFinal);

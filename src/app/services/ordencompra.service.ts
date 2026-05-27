@@ -14,12 +14,12 @@ export class OrdencompraService {
 
   constructor(private http: HttpClient) { }
 
-
+  
   crearOrden(orden: any): Observable<OrdenResponseDTO> {
-    return this.http.post<OrdenResponseDTO>(`${this.apiUrl}/crearOrden`, orden);
+     return this.http.post<OrdenResponseDTO>(`${this.apiUrl}/crearOrden`, orden);
   }
 
-  
+
   // 1. Conseguir todas las órdenes para que las consuman tus bandejas
   listarTodas(): Observable<OrdenResponseDTO[]> {
     return this.http.get<OrdenResponseDTO[]>(this.apiUrl);
@@ -29,6 +29,14 @@ export class OrdencompraService {
   consultarPorId(id: number): Observable<OrdenResponseDTO> {
     return this.http.get<OrdenResponseDTO>(`${this.apiUrl}/${id}`);
   }
+
+  obtenerDetalleProforma(idProforma: number): Observable<any> {
+  // Si en tu Java usas @RequestParam Long id en un ProformaController:
+  return this.http.get<any>(`${this.apiUrl}/consultarOrden?id=${idProforma}`);
+  
+  // NOTA: Si ese endpoint está dentro de OrdenController y se llama consultarOrden, usa esta línea en su lugar:
+  // return this.http.get<any>(`${this.apiUrl}/consultarOrden?id=${idProforma}`);
+}
 
   // NUEVO MÉTODO: Conecta con el RequestParam de Spring Boot
   listarPorProveedor(idProveedor: number): Observable<OrdenResponseDTO[]> {
