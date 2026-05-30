@@ -48,7 +48,7 @@ export class OrdenDetalle implements OnInit {
   }
 
   regresar(): void {
-    this.router.navigate(['/ordenes']);
+    this.router.navigate(['/compras/lista']);
   }
 
   imprimirDocumento(): void {

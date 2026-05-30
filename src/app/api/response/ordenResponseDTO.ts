@@ -13,4 +13,8 @@ export interface OrdenResponseDTO{
     codigoRequerimiento:string;
     detalles: OrdenDetalleResponseDTO[];
 
+    autorizadoPor?: string;
+    firmaDigitalHash?: string;
+
+
 }

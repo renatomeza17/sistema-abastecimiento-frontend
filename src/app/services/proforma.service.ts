@@ -9,11 +9,12 @@ import { ProformaRequestDTO } from '../api/request/requerimiento-request';
   providedIn: 'root',
 })
 export class ProformaService {
+ 
 
   // Endpoints configurados en tus @RequestMapping de Java
   private urlProformas = `${environment.apiUrl}/api/proformas`;
   private urlRequerimientos = `${environment.apiUrl}/api/requerimientos`;
-  private apiUrl = `${environment.apiUrl}/api/proformas`;
+  // private apiUrl = `${environment.apiUrl}/api/proformas`;
 
   constructor(private http: HttpClient) { }
 
@@ -21,6 +22,13 @@ export class ProformaService {
   listarElegidas(): Observable<any[]> {
     return this.http.get<any[]>(`${this.urlProformas}/elegidas`);
   }
+
+
+  consultarPorId(id: number): Observable<any> {
+    // OPCIÓN A: Si tu backend usa @PathVariable (ej: /api/v1/proformas/5)
+    return this.http.get<any>(`${this.urlProformas}/${id}`);
+  }
+
 
   // Consume tu endpoint de requerimientos en estado "APROBADO" (o el listado general)
   listarRequerimientosAprobados(): Observable<any[]> {
@@ -30,25 +38,34 @@ export class ProformaService {
     
   }
 
+
+
+  listarPorRequerimiento(idRequerimiento: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.urlProformas}/requerimiento/${idRequerimiento}`);
+  }
+
+
+
+
   crear(dto: ProformaRequestDTO): Observable<ProformaResponseDTO> {
-    return this.http.post<ProformaResponseDTO>(this.apiUrl, dto);
+    return this.http.post<ProformaResponseDTO>(this.urlProformas, dto);
   }
 
   porRequerimiento(id: number): Observable<ProformaResponseDTO[]> {
     return this.http.get<ProformaResponseDTO[]>(
-      `${this.apiUrl}/requerimiento/${id}`
+      `${this.urlProformas}/requerimiento/${id}`
     );
   }
 
   porProveedor(id: number): Observable<ProformaResponseDTO[]> {
     return this.http.get<ProformaResponseDTO[]>(
-      `${this.apiUrl}/proveedor/${id}`
+      `${this.urlProformas}/proveedor/${id}`
     );
   }
 
   elegir(id: number): Observable<ProformaResponseDTO> {
     return this.http.patch<ProformaResponseDTO>(
-      `${this.apiUrl}/${id}/elegir`, null
+      `${this.urlProformas}/${id}/elegir`, null
     );
   }
 }

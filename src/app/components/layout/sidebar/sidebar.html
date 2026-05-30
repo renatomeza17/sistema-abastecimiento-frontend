@@ -47,6 +47,9 @@
             @if (isOpen(item.label)) {
               <ul class="submenu">
                 @for (child of item.children; track child.url) {
+
+                  @if (child.url !== '/compras/nueva' || hasRole('JEFE DE ABASTECIMIENTO')){
+
                   <li>
                     <a class="submenu-link"
                        [routerLink]="child.url"
@@ -55,6 +58,7 @@
                       {{ child.label }}
                     </a>
                   </li>
+                  }
                 }
               </ul>
             }

@@ -71,14 +71,32 @@ export class OrdenLista implements OnInit {
   }
 
   // Métodos para cambiar los estados comunicándose con tu Backend
-  aprobarOrden(id: number): void {
-    if (confirm('¿Está seguro de firmar y aprobar esta Orden de Compra?')) {
-      this.ordenService.aprobarOrden(id).subscribe({
-        next: () => {
-          alert('Orden aprobada exitosamente.');
-          this.cargarOrdenes(); // Recargar tabla
+   aprobarOrden(id: number): void {
+     if (confirm('¿Está seguro de firmar y aprobar esta Orden de Compra?')) {
+       this.ordenService.autorizarYFirmar(id).subscribe({
+         next: () => {
+           alert('Orden aprobada exitosamente.');
+           this.cargarOrdenes(); // Recargar tabla
         },
-        error: (err) => alert('Error al aprobar orden: ' + err.error)
+         error: (err) => alert('Error al aprobar orden: ' + err.error)
+       });
+     }
+   }
+   
+
+   cancelarOrden(id: number): void {
+    const confirmacion = confirm(' ¿ESTÁ SEGURO DE RECHAZAR ESTA ORDEN? \nEsta acción dejará el documento sin efecto y no se enviará al proveedor.');
+    
+    if (confirmacion) {
+      this.ordenService.cancelarOrden(id).subscribe({
+        next: () => {
+          alert('La orden de compra ha sido rechazada y cancelada.');
+          this.cargarOrdenes(); // Recargamos la tabla para que cambie el estado visualmente
+        },
+        error: (err) => {
+          console.error('Error al cancelar orden: ', err);
+          alert('Error al cancelar: ' + (err.error?.message || err.message || 'Revisa consola'));
+        }
       });
     }
   }
@@ -108,7 +126,7 @@ export class OrdenLista implements OnInit {
   }
 
   verDetalle(id: number): void {
-    this.router.navigate(['/ordenes/detalle', id]); // Redirige al visor de impresión HU05
+    this.router.navigate(['/compras/ordenes', id]); // Redirige al visor de impresión HU05
   }
 
   // Métodos de conteo para tus tarjetas estadísticas superiores

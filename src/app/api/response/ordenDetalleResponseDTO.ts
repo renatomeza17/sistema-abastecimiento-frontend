@@ -6,4 +6,6 @@ export interface OrdenDetalleResponseDTO {
     cantidad: number;
     precioUnitario: number;
     subtotal: number;
+
+    
 }

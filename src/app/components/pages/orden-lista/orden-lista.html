@@ -93,6 +93,9 @@
       <p class="text-muted mb-0 small">Órdenes generadas desde requerimientos y proformas aprobadas</p>
     </div>
     
+
+    
+
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0 bg-white">
         <thead class="table-light text-dark" style="font-size: 14px;">
@@ -136,18 +139,25 @@
             </td>
             <td class="text-center pe-3">
               <div class="btn-group gap-1">
-                <button *ngIf="authService.hasRole('ROLE_DIRECTOR') && orden.estado === 'PENDIENTE'"
+                <button *ngIf="authService.hasRole('DIRECTOR ADMINISTRATIVO') && orden.estado === 'PENDIENTE'"
                         class="btn btn-sm btn-outline-success btn-action"
                         (click)="aprobarOrden(orden.idOrden)"
                         title="Firmar y Autorizar">
                   <i class="bi bi-pen-fill"></i> Firmar
                 </button>
 
-                <button *ngIf="authService.hasRole('ROLE_JEFE_ABASTECIMIENTO') && orden.estado === 'APROBADA'"
+                <button *ngIf="authService.hasRole('JEFE DE ABASTECIMIENTO') && orden.estado === 'APROBADA'"
                         class="btn btn-sm btn-outline-primary btn-action"
                         (click)="enviarAlProveedor(orden.idOrden)"
                         title="Enviar al Proveedor">
                   <i class="bi bi-send-fill"></i> Enviar
+                </button>
+
+                <button *ngIf="authService.hasRole('DIRECTOR ADMINISTRATIVO') && orden.estado === 'PENDIENTE'"
+                        class="btn btn-sm btn-outline-danger btn-action"
+                        (click)="cancelarOrden(orden.idOrden)"
+                        title="Rechazar y Cancelar Orden">
+                  <i class="bi bi-x-circle-fill"></i> Rechazar
                 </button>
 
                 <button *ngIf="authService.hasRole('ROLE_PERSONAL_APOYO') && orden.estado === 'ENVIADA'"

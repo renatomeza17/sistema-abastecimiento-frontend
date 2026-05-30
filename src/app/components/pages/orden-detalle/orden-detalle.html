@@ -91,20 +91,93 @@
         </table>
       </div>
 
-      <div class="row mt-5 pt-4 text-center">
-        <div class="col-6">
-          <div class="mx-auto border-top border-dark pt-2" style="width: 70%;">
-            <p class="mb-0 small fw-bold">Jefe de la Unidad de Abastecimiento</p>
-            <p class="small text-muted mb-0">Oficina de Control SUDAB - UNI</p>
+
+      <div class="row mt-5 pt-4">
+
+        <div class="col-md-6">
+          <div class="text-center mt-3">
+            
+            <div style="border: 2px solid #198754; color: #198754; padding: 10px; border-radius: 8px; display: inline-block; background-color: rgba(25, 135, 84, 0.05);">
+              <i class="bi bi-person-check-fill fs-4"></i>
+              <h6 class="mb-0 fw-bold">DOCUMENTO FORMULADO</h6>
+              <small class="d-block mt-1 text-break" style="font-family: monospace; font-size: 11px;">
+                Emisión: {{ orden.fechaCreacion | date:'dd/MM/yyyy' }}
+              </small>
+              <small class="d-block mt-1">
+                Responsable: <b>Área de Abastecimiento</b>
+              </small>
+            </div>
+            
+            <p class="mt-3 mb-0 fw-bold">Jefe de la Unidad de Abastecimiento</p>
+            <small class="text-muted">Formulación y Verificación SUDAB</small>
           </div>
         </div>
-        <div class="col-6">
-          <div class="mx-auto border-top border-dark pt-2" style="width: 70%;">
-            <p class="mb-0 small fw-bold">Director Administrativo</p>
-            <p class="small text-muted mb-0">Autorización Presupuestal</p>
+        
+        
+
+        <div class="col-md-6">
+          <!-- <div *ngIf="orden.estado !== 'PENDIENTE'" class="text-center mt-3">
+            
+            <div style="border: 2px solid #003B75; color: #003B75; padding: 10px; border-radius: 8px; display: inline-block; background-color: rgba(0, 59, 117, 0.05);">
+              <i class="bi bi-patch-check-fill fs-4"></i>
+              <h6 class="mb-0 fw-bold">FIRMADO DIGITALMENTE</h6>
+              <small class="d-block mt-1 text-break" style="font-family: monospace; font-size: 11px; max-width: 250px;">
+                Sello: {{ orden.firmaDigitalHash || 'SUDAB-SIG-VALIDADO' }}
+              </small>
+              <small class="d-block mt-1">
+                Autorizado por: <b>{{ orden.autorizadoPor || 'Director Administrativo' }}</b>
+              </small>
+            </div>
+            
+            <p class="mt-3 mb-0 fw-bold">Director Administrativo</p>
+            <small class="text-muted">Aprobación Presupuestal SUDAB</small>
           </div>
-        </div>
+
+          <div *ngIf="orden.estado === 'PENDIENTE'" class="text-center mt-5">
+            <div class="mx-auto border-top pt-2" style="width: 70%; border-top-style: dashed !important; border-color: #ccc !important;">
+              <p class="mt-2 mb-0 text-muted fw-bold">Director Administrativo</p>
+              <small class="text-danger"><i class="bi bi-clock-history"></i> Pendiente de Firma</small>
+            </div>
+          </div>
+        </div> -->
+
+
+        <div *ngIf="orden.estado === 'APROBADA' || orden.estado === 'ENVIADA' || orden.estado === 'ARCHIVADA'" class="text-center mt-3">
+            <div style="border: 2px solid #003B75; color: #003B75; padding: 10px; border-radius: 8px; display: inline-block; background-color: rgba(0, 59, 117, 0.05);">
+              <i class="bi bi-patch-check-fill fs-4"></i>
+              <h6 class="mb-0 fw-bold">FIRMADO DIGITALMENTE</h6>
+              <small class="d-block mt-1 text-break" style="font-family: monospace; font-size: 11px; max-width: 250px;">
+                Sello: {{ orden.firmaDigitalHash || 'SUDAB-SIG-VALIDADO' }}
+              </small>
+              <small class="d-block mt-1">
+                Autorizado por: <b>{{ orden.autorizadoPor || 'Director Administrativo' }}</b>
+              </small>
+            </div>
+            <p class="mt-3 mb-0 fw-bold">Director Administrativo</p>
+            <small class="text-muted">Aprobación Presupuestal SUDAB</small>
+          </div>
+
+          <div *ngIf="orden.estado === 'CANCELADA'" class="text-center mt-3">
+            <div style="border: 2px solid #dc3545; color: #dc3545; padding: 10px; border-radius: 8px; display: inline-block; background-color: rgba(220, 53, 69, 0.05);">
+              <i class="bi bi-x-octagon-fill fs-4"></i>
+              <h6 class="mb-0 fw-bold">ORDEN RECHAZADA</h6>
+              <small class="d-block mt-1" style="font-family: monospace; font-size: 11px;">
+                Sin efecto presupuestal ni legal
+              </small>
+            </div>
+            <p class="mt-3 mb-0 fw-bold text-muted"><del>Director Administrativo</del></p>
+            <small class="text-danger">Documento Anulado</small>
+          </div>
+
+          <div *ngIf="orden.estado === 'PENDIENTE'" class="text-center mt-5">
+            <div class="mx-auto border-top pt-2" style="width: 70%; border-top-style: dashed !important; border-color: #ccc !important;">
+              <p class="mt-2 mb-0 text-muted fw-bold">Director Administrativo</p>
+              <small class="text-warning text-dark"><i class="bi bi-clock-history"></i> Pendiente de Firma</small>
+            </div>
+          </div>
       </div>
+
+     
 
     </div>
 

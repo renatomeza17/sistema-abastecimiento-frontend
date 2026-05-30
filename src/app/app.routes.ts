@@ -11,6 +11,7 @@ import { authGuard } from './guards/auth-guard';
 import { OrdenLista } from './components/pages/orden-lista/orden-lista';
 import { OrdenDetalle } from './components/pages/orden-detalle/orden-detalle';
 import { OrdenForm } from './components/pages/orden-form/orden-form';
+import { RequerimientosComponent } from './components/pages/requerimiento/requerimiento';
 
 export const routes: Routes = [
   // Ruta independiente
@@ -32,9 +33,18 @@ export const routes: Routes = [
       // Gestión de Roles (La que pediste para el sidebar)
       // Asegúrate de cambiar 'UsuariosLista' por el componente de tus tarjetas si es distinto
       { path: 'admin/roles', component: UsuariosForm }, 
-        {path: 'compras/lista', component: OrdenLista },
-        { path: 'compras/nueva', component: OrdenForm },
-        {path: 'compras/ordenes/:id', component: OrdenDetalle },
+      {path: 'compras/lista', component: OrdenLista },
+      { path: 'compras/nueva', component: OrdenForm },
+      {path: 'compras/ordenes/:id', component: OrdenDetalle },
+      {path: 'requerimientos/nuevo', component:RequerimientosComponent},
+
+
+      // { 
+      //   path: 'ordenes/detalle/:id', 
+      //   component: OrdenDetalle,
+      //   // canActivate: [roleGuard], // Si usas guardias de seguridad
+      //   data: { expectedRoles: ['ROLE_JEFE_ABASTECIMIENTO', 'ROLE_DIRECTOR_ADMIN'] } // Los que pueden verla
+      // },
       // Redirección por defecto dentro del Layout
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

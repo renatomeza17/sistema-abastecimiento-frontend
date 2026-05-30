@@ -100,7 +100,11 @@ export class Sidebar implements OnInit {
     },
   };
 
-  constructor(private authService: AuthService) {}
+  constructor(public authService: AuthService) {}
+
+  hasRole(rol: string): boolean {
+  return this.authService.hasRole(rol);
+}
 
   ngOnInit(): void {
 

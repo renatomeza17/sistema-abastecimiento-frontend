@@ -14,10 +14,15 @@ export class OrdencompraService {
 
   constructor(private http: HttpClient) { }
 
+
   
-  crearOrden(orden: any): Observable<OrdenResponseDTO> {
-     return this.http.post<OrdenResponseDTO>(`${this.apiUrl}/crearOrden`, orden);
-  }
+   crearOrden(orden: any): Observable<OrdenResponseDTO> {
+     return this.http.post<OrdenResponseDTO>(`${this.apiUrl}`, orden);
+   }
+  
+  // crearOrden(orden: any): Observable<OrdenResponseDTO> {
+  //    return this.http.post<OrdenResponseDTO>(`${this.apiUrl}/crearOrden`, orden);
+  // }
 
 
   // 1. Conseguir todas las órdenes para que las consuman tus bandejas
@@ -44,8 +49,14 @@ export class OrdencompraService {
   }
 
   // 3. Acción del Director Administrativo
-  aprobarOrden(id: number): Observable<string> {
-    return this.http.put<string>(`${this.apiUrl}/${id}/aprobar`, {}, { responseType: 'text' as 'json' });
+   aprobarOrden(id: number): Observable<string> {
+     return this.http.put<string>(`${this.apiUrl}/${id}/aprobar`, {}, { responseType: 'text' as 'json' });
+   }
+
+
+   // 3. Acción del Director Administrativo
+  autorizarYFirmar(id: number): Observable<OrdenResponseDTO> {
+    return this.http.put<OrdenResponseDTO>(`${this.apiUrl}/aprobarOrden?id=${id}`, {});
   }
 
   // 4. Acción del Jefe de Abastecimiento
@@ -58,4 +69,8 @@ export class OrdencompraService {
     return this.http.put<string>(`${this.apiUrl}/${id}/archivar`, {}, { responseType: 'text' as 'json' });
   }
   
+
+  cancelarOrden(id: number): Observable<string> {
+    return this.http.put<string>(`${this.apiUrl}/${id}/cancelar`, {}, { responseType: 'text' as 'json' });
+  }
 }
