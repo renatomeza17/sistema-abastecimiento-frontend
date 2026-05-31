@@ -15,5 +15,7 @@ export interface ordenCompra{
     proveedor: Proveedor; // Enlace al proveedor completo
     detalles: OrdenCompraDetalle[];
 
+    
+
 
 }

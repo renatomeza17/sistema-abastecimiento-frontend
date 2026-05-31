@@ -25,7 +25,7 @@ export class ProformaService {
 
 
   consultarPorId(id: number): Observable<any> {
-    // OPCIÓN A: Si tu backend usa @PathVariable (ej: /api/v1/proformas/5)
+    //  (ej: /api/proformas/5)
     return this.http.get<any>(`${this.urlProformas}/${id}`);
   }
 

@@ -48,7 +48,7 @@ export class Sidebar implements OnInit {
       icon: 'bi-file-earmark-text',
       children: [
         { label: 'Nuevo Requerimiento', url: '/requerimientos/nuevo' },
-        { label: 'Proformas', url: '/requerimientos/proformas' },
+        { label: 'Proformas', url: '/requerimientos/elegidas' },
         { label: 'Comparar Proformas', url: '/requerimientos/comparar' },
         { label: 'Autorización OC', url: '/compras/autorizacion' },
       ],

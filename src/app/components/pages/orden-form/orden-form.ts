@@ -5,6 +5,10 @@ import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RequerimientoService } from '../../../services/requerimiento.service';
+import { DetalleProformaResponseDTO, ProformaResponseDTO, RequerimientoResponseDTO } from '../../../api/response/requerimiento-response';
+import { proveedorResponseDTO } from '../../../api/response/proveedorResponseDTO';
+import { OrdenFormModel } from '../../../models/ordenFormModel';
+import { OrdenRequestDTO } from '../../../api/request/ordenRequestDTO';
 
 @Component({
   selector: 'app-orden-form',
@@ -14,7 +18,7 @@ import { RequerimientoService } from '../../../services/requerimiento.service';
 })
 export class OrdenForm implements OnInit {// Estructura limpia para enviar al DTO de Spring Boot
  // Estructura limpia para enviar al DTO de Spring Boot (@RequestBody)
-  ordenRequest: any = {
+  ordenRequest: OrdenFormModel = {
     nroOrden: 'OC-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000), // Secuencial dinámico para evitar errores de Unique Constraint
     fechaEmision: new Date().toISOString().substring(0, 10), 
     fechaEntrega: '',
@@ -28,11 +32,11 @@ export class OrdenForm implements OnInit {// Estructura limpia para enviar al DT
   };
 
   // Arreglos dinámicos reales de la Base de Datos (Neon)
-  requerimientosList: any[] = [];
-  proformaList: any[] = [];
+  requerimientosList: RequerimientoResponseDTO[] = [];
+  proformaList: ProformaResponseDTO[] = [];
 
   // Objetos reactivos para renderizar dinámicamente en las tarjetas de Bootstrap
-  proveedorSeleccionado: any = null;
+  proveedorSeleccionado: proveedorResponseDTO | null = null;
   items: any[] = [];
 
   // Totales calculados en tiempo real
@@ -54,7 +58,7 @@ export class OrdenForm implements OnInit {// Estructura limpia para enviar al DT
   // PASO 1: CARGA LOS REQUERIMIENTOS DESDE LA BASE DE DATOS AL INICIAR
   cargarRequerimientosIniciales(): void {
     this.proformaService.listarRequerimientosAprobados().subscribe({
-      next: (data) => {
+      next: (data: RequerimientoResponseDTO[]) => {
         this.requerimientosList = data;
         console.log('Requerimientos reales cargados de Neon:', data);
       },
@@ -73,7 +77,7 @@ export class OrdenForm implements OnInit {// Estructura limpia para enviar al DT
 
     if (idReq) {
         this.proformaService.listarPorRequerimiento(idReq).subscribe({
-            next: (data) => {
+            next: (data: ProformaResponseDTO[]) => {
                 this.proformaList = data; // Aquí cargas las proformas específicas de ese requerimiento
             },
             error: (err) => console.error('Error al cargar proformas:', err)
@@ -95,7 +99,7 @@ export class OrdenForm implements OnInit {// Estructura limpia para enviar al DT
 
     // Llamamos a tu servicio mapeado a /api/proformas/{id}
     this.proformaService.consultarPorId(idProformaSeleccionada).subscribe({
-      next: (data: any) => {
+      next: (data: ProformaResponseDTO) => {
         console.log('JSON bruto que llegó del Backend:', data);
         
         // 📌 TRUCO DE FLEXIBILIDAD ABSOLUTA:
@@ -117,10 +121,10 @@ export class OrdenForm implements OnInit {// Estructura limpia para enviar al DT
 
         // 📌 MApEO FLEXIBLE DE PRODUCTOS:
         // Evalúa si tu backend lo llamó "productos" o "detalles"
-        const listaDetallesRaw = data.productos || data.detalles || [];
+        const listaDetallesRaw:DetalleProformaResponseDTO[] = data.productos ||  [];
         console.log('Colección de ítems detectada para procesar:', listaDetallesRaw);
 
-        this.items = listaDetallesRaw.map((item: any, index: number) => {
+        this.items = listaDetallesRaw.map((item: DetalleProformaResponseDTO, index: number) => {
           // // Extraemos el subobjeto producto si viene mapeado por Hibernate
           // const prod = item.producto || item;
           // const cantidadItem = item.cantidad || 0;
@@ -128,7 +132,7 @@ export class OrdenForm implements OnInit {// Estructura limpia para enviar al DT
 
           return {
             num: index + 1,
-            idProducto: item.idProducto ||  null,
+            idProducto: item.producto.idProducto ||  null,
             codigo: item.producto.codigo || 'Insumo',
             descripcion: item.producto.nombre || 'Sin descripción técnica',
             unidad: item.producto.unidadMedida || 'Unidad',
@@ -185,7 +189,7 @@ export class OrdenForm implements OnInit {// Estructura limpia para enviar al DT
       subtotal: item.subtotal
     }));
 
-    const payloadFinal = {
+    const payloadFinal: OrdenRequestDTO = {
       codigo: this.ordenRequest.nroOrden, 
       descripcion: this.ordenRequest.observaciones || 'Orden de compra generada desde el formulario',
       estado: 'PENDIENTE',
@@ -193,8 +197,16 @@ export class OrdenForm implements OnInit {// Estructura limpia para enviar al DT
       fechaEntrega: this.ordenRequest.fechaEntrega,
       montoTotal: this.total, 
       idProforma: Number(idProformaSeleccionada),
-      idProveedor: Number(this.proveedorSeleccionado.idProveedor), 
-      items: itemsFormateadosJava 
+      idProveedor: Number(this.proveedorSeleccionado?.idProveedor || 0 ), 
+      items: itemsFormateadosJava,
+
+  
+      lugarEntrega: this.ordenRequest.lugarEntrega,
+      observaciones: this.ordenRequest.observaciones,
+      formaPago: this.ordenRequest.formaPago,
+      plazoEntrega: this.ordenRequest.plazoEntrega,
+      garantia: this.ordenRequest.garantia
+
     };
 
     console.log('Payload JSON final y real enviado a Spring Boot:', payloadFinal);

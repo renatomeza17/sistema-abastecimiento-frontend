@@ -1,3 +1,6 @@
+import { productoResponseDTO } from "./productoResponseDTO";
+import { proveedorResponseDTO } from "./proveedorResponseDTO";
+
 export interface RequerimientoResponseDTO {
   idRequerimiento: number;
   codigo: string;
@@ -22,16 +25,28 @@ export interface ProformaResponseDTO {
   estado: string;
   idRequerimiento: number;
   codigoRequerimiento: string;
+  proveedor: proveedorResponseDTO;
   idProveedor: number;
+
+  plazoEntrega?: string;
+  garantia?: string;
+  
   razonSocialProveedor: string;
   productos: DetalleProformaResponseDTO[];
 }
 
 export interface DetalleProformaResponseDTO {
-  idProducto: number;
-  nombreProducto: string;
-  unidadMedida: string;
+  idProformaDetalle: number;
   cantidad: number;
   precioUnitario: number;
   subtotal: number;
+
+  producto:productoResponseDTO;
+  
+  // idProducto: number;
+  // nombreProducto: string;
+  // unidadMedida: string;
+  // cantidad: number;
+  // precioUnitario: number;
+  // subtotal: number;
 }

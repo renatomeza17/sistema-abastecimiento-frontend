@@ -12,6 +12,7 @@ import { OrdenLista } from './components/pages/orden-lista/orden-lista';
 import { OrdenDetalle } from './components/pages/orden-detalle/orden-detalle';
 import { OrdenForm } from './components/pages/orden-form/orden-form';
 import { RequerimientosComponent } from './components/pages/requerimiento/requerimiento';
+import { CrearProformaComponent } from './components/pages/crear-proforma/crear-proforma';
 
 export const routes: Routes = [
   // Ruta independiente
@@ -37,6 +38,9 @@ export const routes: Routes = [
       { path: 'compras/nueva', component: OrdenForm },
       {path: 'compras/ordenes/:id', component: OrdenDetalle },
       {path: 'requerimientos/nuevo', component:RequerimientosComponent},
+      {path: 'requerimientos/elegidas', component: CrearProformaComponent},
+
+     
 
 
       // { 

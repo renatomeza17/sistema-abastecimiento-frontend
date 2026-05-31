@@ -143,11 +143,11 @@
 
                       <!-- Detalle de productos -->
                       <div class="flex-grow-1 mb-3 overflow-auto" style="max-height:160px">
-                        @for (p of prof.productos; track p.idProducto) {
+                        @for (p of prof.productos; track p.producto.idProducto) {
                           <div class="d-flex justify-content-between small
                                       border-bottom py-1 px-1">
                             <span class="text-truncate pe-2" style="max-width:160px">
-                              {{ p.nombreProducto }}
+                              {{ p.producto.nombre }}
                               <span class="text-muted">x{{ p.cantidad }}</span>
                             </span>
                             <span class="fw-bold text-nowrap">
