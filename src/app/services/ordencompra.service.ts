@@ -19,6 +19,8 @@ export class OrdencompraService {
    crearOrden(orden: any): Observable<OrdenResponseDTO> {
      return this.http.post<OrdenResponseDTO>(`${this.apiUrl}`, orden);
    }
+
+   
   
   // crearOrden(orden: any): Observable<OrdenResponseDTO> {
   //    return this.http.post<OrdenResponseDTO>(`${this.apiUrl}/crearOrden`, orden);

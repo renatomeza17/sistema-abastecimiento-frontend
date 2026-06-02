@@ -24,25 +24,34 @@ export class ProformaService {
   }
 
 
+
+  
   consultarPorId(id: number): Observable<any> {
     //  (ej: /api/proformas/5)
     return this.http.get<any>(`${this.urlProformas}/${id}`);
   }
 
 
-  // Consume tu endpoint de requerimientos en estado "APROBADO" (o el listado general)
-  listarRequerimientosAprobados(): Observable<any[]> {
-    // Si manejas estados en mayúsculas en tu Java:
-    return this.http.get<any[]>(`${this.urlRequerimientos}/estado/APROBADO`);
+  // // Consume tu endpoint de requerimientos en estado "APROBADO" (o el listado general)
+  // listarRequerimientosAprobados(): Observable<any[]> {
+  //   // Si manejas estados en mayúsculas en tu Java:
+  //   return this.http.get<any[]>(`${this.urlRequerimientos}/estado/APROBADO`);
 
     
-  }
+  // }
+
+
 
 
 
   listarPorRequerimiento(idRequerimiento: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.urlProformas}/requerimiento/${idRequerimiento}`);
   }
+
+
+
+
+
 
 
 

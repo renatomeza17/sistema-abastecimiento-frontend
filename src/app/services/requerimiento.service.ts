@@ -33,8 +33,13 @@ export class RequerimientoService {
        `${this.apiUrl}/estado/${estado}`
      );
    }
-   
-   // Obtener el detalle completo de un requerimiento por su ID único
+
+   listarRequerimientosAprobados(): Observable<any[]> {
+    // Si manejas estados en mayúsculas en tu Java:
+    return this.http.get<any[]>(`${this.apiUrl}/estado/APROBADO`);
+    
+  }
+
    obtener(id: number): Observable<RequerimientoResponseDTO> {
      return this.http.get<RequerimientoResponseDTO>(`${this.apiUrl}/${id}`);    
     }
