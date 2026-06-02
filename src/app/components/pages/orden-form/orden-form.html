@@ -22,14 +22,14 @@
           <div class="row g-3">
             <div class="col-md-4">
               <label class="form-label fw-medium text-secondary small">Fecha de Emisión</label>
-              <input type="date" class="form-control" [(ngModel)]="ordenRequest.fechaEmision" name="fechaEmision">
+              <input type="date" class="form-control" [value]="ordenRequest.fechaEmision" name="fechaEmision" readonly>
             </div>
             <div class="col-md-4">
               <label class="form-label fw-medium text-secondary small">Fecha de Entrega Estimada *</label>
               <input type="date" class="form-control" [(ngModel)]="ordenRequest.fechaEntrega" name="fechaEntrega">
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-medium text-secondary small">Forma de Pago</label>
+              <label class="form-label fw-medium text-secondary small">Forma de Pago</label> 
               <select class="form-select text-muted" [(ngModel)]="ordenRequest.formaPago" name="formaPago">
                 <option value="">Seleccione forma de pago</option>
                 <option value="Credito">Crédito (30 días)</option>

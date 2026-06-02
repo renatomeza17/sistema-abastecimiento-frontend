@@ -19,9 +19,9 @@ import { OrdenRequestDTO } from '../../../api/request/ordenRequestDTO';
 export class OrdenForm implements OnInit {// Estructura limpia para enviar al DTO de Spring Boot
  // Estructura limpia para enviar al DTO de Spring Boot (@RequestBody)
   ordenRequest: OrdenFormModel = {
-    nroOrden: 'OC-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000), // Secuencial dinámico para evitar errores de Unique Constraint
+    nroOrden: 'AUTOGENERADO', 
     fechaEmision: new Date().toISOString().substring(0, 10), 
-    fechaEntrega: '',
+    fechaEntrega: '',                                                                                                                                              
     idRequerimiento: null,
     idProforma: null,
     formaPago: '',
@@ -57,7 +57,7 @@ export class OrdenForm implements OnInit {// Estructura limpia para enviar al DT
 
   // PASO 1: CARGA LOS REQUERIMIENTOS DESDE LA BASE DE DATOS AL INICIAR
   cargarRequerimientosIniciales(): void {
-    this.proformaService.listarRequerimientosAprobados().subscribe({
+    this.requerimientoService.listarRequerimientosAprobados().subscribe({
       next: (data: RequerimientoResponseDTO[]) => {
         this.requerimientosList = data;
         console.log('Requerimientos reales cargados de Neon:', data);
@@ -65,6 +65,7 @@ export class OrdenForm implements OnInit {// Estructura limpia para enviar al DT
       error: (err) => console.error('Error al traer requerimientos:', err)
     });
   }
+
 
   // PASO 2: SE EJECUTA AL CAMBIAR EL REQUERIMIENTO (Filtra las proformas relacionadas)
   onRequerimientoChange(): void {
@@ -87,7 +88,7 @@ export class OrdenForm implements OnInit {// Estructura limpia para enviar al DT
 
 
 
-  // 🛠️ PASO 3: ¡MÉTODO RECUPERADO! Se activa al seleccionar la proforma en el HTML
+  //  Se activa al seleccionar la proforma en el HTML
   onProformaChange(): void {
     const idProformaSeleccionada = this.ordenRequest.idProforma;
     console.log('ID de proforma seleccionado para consultar en Neon:', idProformaSeleccionada);
@@ -102,33 +103,19 @@ export class OrdenForm implements OnInit {// Estructura limpia para enviar al DT
       next: (data: ProformaResponseDTO) => {
         console.log('JSON bruto que llegó del Backend:', data);
         
-        // 📌 TRUCO DE FLEXIBILIDAD ABSOLUTA:
-        // Si tu objeto proveedor viene anidado lo extrae, si viene plano en la raíz también.
-        this.proveedorSeleccionado= data.proveedor || data;
         
-        // this.proveedorSeleccionado = {
-        //   idProveedor: prov.idProveedor || prov.id_proveedor || null,
-        //   razonSocial: prov.razonSocialProveedor || prov.razon_social || 'Proveedor Sin Nombre',
-        //   ruc: prov.ruc || '00000000000',
-        //   direccion: prov.direccion || 'Dirección fiscal no registrada',
-        //   contacto: prov.contacto || 'No especificado',
-        //   telefono: prov.telefono || 'Sin teléfono'
-        // };
-
-        // Inyectamos plazos por defecto si no vienen explícitos en el DTO
+        this.proveedorSeleccionado= data.proveedor || data;
         this.ordenRequest.plazoEntrega = data.plazoEntrega || '15 días hábiles';
         this.ordenRequest.garantia = data.garantia || '12 meses';
 
-        // 📌 MApEO FLEXIBLE DE PRODUCTOS:
-        // Evalúa si tu backend lo llamó "productos" o "detalles"
+
+
+        // MApEO FLEXIBLE DE PRODUCTOS:
+        
         const listaDetallesRaw:DetalleProformaResponseDTO[] = data.productos ||  [];
         console.log('Colección de ítems detectada para procesar:', listaDetallesRaw);
 
         this.items = listaDetallesRaw.map((item: DetalleProformaResponseDTO, index: number) => {
-          // // Extraemos el subobjeto producto si viene mapeado por Hibernate
-          // const prod = item.producto || item;
-          // const cantidadItem = item.cantidad || 0;
-          // const precioItem = item.precioUnitario || item.precio_unitario || 0;
 
           return {
             num: index + 1,
@@ -182,28 +169,29 @@ export class OrdenForm implements OnInit {// Estructura limpia para enviar al DT
     }
 
     // Formateamos los detalles de la orden acoplándolos a la relación de entidades de tu Backend
-    const itemsFormateadosJava = this.items.map(item => ({
-      producto: { idProducto: item.idProducto }, 
-      cantidad: item.cantidad,
-      precioUnitario: item.precioUnit, 
-      subtotal: item.subtotal
-    }));
+    // const itemsFormateadosJava = this.items.map(item => ({
+    //   producto: { idProducto: item.idProducto }, 
+    //   cantidad: item.cantidad,
+    //   precioUnitario: item.precioUnit, 
+    //   subtotal: item.subtotal
+    // }));
+
+
 
     const payloadFinal: OrdenRequestDTO = {
-      codigo: this.ordenRequest.nroOrden, 
-      descripcion: this.ordenRequest.observaciones || 'Orden de compra generada desde el formulario',
-      estado: 'PENDIENTE',
-      fechaCreacion: this.ordenRequest.fechaEmision,
-      fechaEntrega: this.ordenRequest.fechaEntrega,
-      montoTotal: this.total, 
-      idProforma: Number(idProformaSeleccionada),
-      idProveedor: Number(this.proveedorSeleccionado?.idProveedor || 0 ), 
-      items: itemsFormateadosJava,
+      // codigo: this.ordenRequest.nroOrden, 
+      // descripcion: this.ordenRequest.observaciones || 'Orden de compra generada desde el formulario',
+      // estado: 'PENDIENTE',
+      // fechaCreacion: this.ordenRequest.fechaEmision,
+      // items: itemsFormateadosJava,
+      // montoTotal: this.total, 
+      //idProveedor: Number(this.proveedorSeleccionado?.idProveedor || 0 ), 
 
-  
+      idProforma: Number(idProformaSeleccionada),
+      formaPago: this.ordenRequest.formaPago,
+      fechaEntrega: this.ordenRequest.fechaEntrega,
       lugarEntrega: this.ordenRequest.lugarEntrega,
       observaciones: this.ordenRequest.observaciones,
-      formaPago: this.ordenRequest.formaPago,
       plazoEntrega: this.ordenRequest.plazoEntrega,
       garantia: this.ordenRequest.garantia
 
