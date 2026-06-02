@@ -9,9 +9,10 @@ import { RequerimientoResponseDTO } from '../../../api/response/requerimiento-re
   selector: 'app-requerimiento',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './requerimiento.html',
-  styleUrls: ['./requerimiento.scss']
+  templateUrl: './lista-requerimientos.html',
+  styleUrls: ['./lista-requerimientos.scss']
 })
+// Componente para listar y crear requerimientos
 export class RequerimientosComponent implements OnInit {
 
   // ── Vista activa ────────────────────────────────────────────

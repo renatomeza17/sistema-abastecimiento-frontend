@@ -8,8 +8,8 @@ import { RequerimientoResponseDTO, ProformaResponseDTO } from '../../../api/resp
   selector: 'app-evaluar-proformas',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './evaluar-proformas.html',
-  styleUrls: ['./evaluar-proformas.scss']
+  templateUrl: './requerimiento-comparar-proformas.html',
+  styleUrls: ['./requerimiento-comparar-proformas.scss']
 })
 export class EvaluarProformasComponent implements OnInit {
 

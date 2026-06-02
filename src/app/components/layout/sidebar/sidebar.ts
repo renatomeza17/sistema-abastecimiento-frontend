@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 
+
 interface MenuItem {
   label: string;
   icon: string;
@@ -33,7 +34,7 @@ export class Sidebar implements OnInit {
       children: [{ label: 'Dashboard', url: '/dashboard' }],
     },
     USUARIOS: {
-      label: 'Administración',
+      label: 'Usuarios',
       icon: 'bi-people',
       children: [
         { label: 'Gestión de Usuarios', url: '/admin/usuarios' },
@@ -44,13 +45,12 @@ export class Sidebar implements OnInit {
       ],
     },
     REQUERIMIENTOS: {
-      label: 'Requerimientos',
+      label: 'Requerimientos y Proformas',
       icon: 'bi-file-earmark-text',
       children: [
-        { label: 'Nuevo Requerimiento', url: '/requerimientos/nuevo' },
-        { label: 'Proformas', url: '/requerimientos/elegidas' },
+        { label: 'Requerimientos', url: '/requerimientos/requerimientos' },
+        { label: 'Proformas', url: '/requerimientos/proformas' },
         { label: 'Comparar Proformas', url: '/requerimientos/comparar' },
-        { label: 'Autorización OC', url: '/compras/autorizacion' },
       ],
     },
     COMPRAS: {

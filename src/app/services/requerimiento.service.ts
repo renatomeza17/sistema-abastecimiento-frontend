@@ -15,53 +15,31 @@ export class RequerimientoService {
   private apiUrl = `${environment.apiUrl}/api/requerimientos`;
 
   constructor(private http: HttpClient) { }
-
-  // // 1. Listar todos los requerimientos registrados en Neon
-  // listarTodos(): Observable<any[]> {
-  //   return this.http.get<any[]>(this.apiUrl);
-  // }
-
-  // // 2. Filtrar requerimientos por estado (PENDIENTE, EN_PROCESO, CERRADO, APROBADO)
-  // // Llama directamente al @GetMapping("/estado/{estado}") del Backend
-  // listarPorEstado(estado: string): Observable<any[]> {
-  //   return this.http.get<any[]>(`${this.apiUrl}/estado/${estado}`);
-  // }
-
-  // // 3. Ver el detalle completo de un requerimiento por su ID único
-  // obtenerPorId(id: number): Observable<any> {
-  //   return this.http.get<any>(`${this.apiUrl}/${id}`);
-  // }
-
-  // // 4. Crear un nuevo requerimiento (Enviado por el Jefe de Abastecimiento)
-  // crear(requerimientoRequest: any): Observable<any> {
-  //   return this.http.get<any>(this.apiUrl, requerimientoRequest);
-  // }
-
-  // // 5. Cambiar el estado (Usado por el Director para APROBADO / CANCELADO)
-  // // Usa @PatchMapping y pasa el estado como un @RequestParam en la URL
-  // cambiarEstado(id: number, nuevoEstado: string): Observable<any> {
-  //   return this.http.patch<any>(`${this.apiUrl}/${id}/estado?estado=${nuevoEstado}`, {});
-  // }
-
+  // Implementación real con tipos específicos y mejor manejo de URLs
   
+  // Crear un nuevo requerimiento con el DTO específico
    crear(dto: RequerimientoRequestDTO): Observable<RequerimientoResponseDTO> {
      return this.http.post<RequerimientoResponseDTO>(this.apiUrl, dto);
    }
 
+   // Listar todos los requerimientos sin filtro
    listar(): Observable<RequerimientoResponseDTO[]> {
      return this.http.get<RequerimientoResponseDTO[]>(this.apiUrl);
    }
 
+   // Listar requerimientos filtrados por estado específico
    listarPorEstado(estado: string): Observable<RequerimientoResponseDTO[]> {
      return this.http.get<RequerimientoResponseDTO[]>(
        `${this.apiUrl}/estado/${estado}`
      );
    }
-
+   
+   // Obtener el detalle completo de un requerimiento por su ID único
    obtener(id: number): Observable<RequerimientoResponseDTO> {
-     return this.http.get<RequerimientoResponseDTO>(`${this.apiUrl}/${id}`);
- }
+     return this.http.get<RequerimientoResponseDTO>(`${this.apiUrl}/${id}`);    
+    }
 
+    // Cambiar el estado de un requerimiento (ej. APROBADO, CANCELADO)
    cambiarEstado(id: number, estado: string): Observable<RequerimientoResponseDTO> {
      return this.http.patch<RequerimientoResponseDTO>(
        `${this.apiUrl}/${id}/estado`,

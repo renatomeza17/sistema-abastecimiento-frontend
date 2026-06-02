@@ -10,8 +10,8 @@ import { ProformaRequestDTO, DetalleProformaRequestDTO } from '../../../api/requ
   selector: 'app-crear-proforma',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './crear-proforma.html',
-  styleUrls: ['./crear-proforma.scss']
+  templateUrl: './requerimiento-proformas.html',
+  styleUrls: ['./requerimiento-proformas.scss']
 })
 export class CrearProformaComponent implements OnInit {
 
