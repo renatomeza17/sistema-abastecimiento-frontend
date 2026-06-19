@@ -1,9 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
-
 
 interface MenuItem {
   label: string;
@@ -20,7 +18,6 @@ interface MenuItem {
 })
 export class Sidebar implements OnInit {
 
-
   nombreCompleto = '';
   cargo = '';
 
@@ -33,17 +30,16 @@ export class Sidebar implements OnInit {
       icon: 'bi-grid-1x2',
       children: [{ label: 'Dashboard', url: '/dashboard' }],
     },
+
     USUARIOS: {
       label: 'Usuarios',
       icon: 'bi-people',
       children: [
         { label: 'Gestión de Usuarios', url: '/admin/usuarios' },
-
-        // Corregido: Ahora apunta a la ruta que configuramos en app.routes.ts
-        { label: 'Roles y Permisos', url: '/admin/roles' }, 
-
+        { label: 'Roles y Permisos', url: '/admin/roles' },
       ],
     },
+
     REQUERIMIENTOS: {
       label: 'Requerimientos y Proformas',
       icon: 'bi-file-earmark-text',
@@ -53,6 +49,7 @@ export class Sidebar implements OnInit {
         { label: 'Comparar Proformas', url: '/requerimientos/comparar' },
       ],
     },
+
     COMPRAS: {
       label: 'Órdenes de Compra',
       icon: 'bi-cart3',
@@ -63,6 +60,7 @@ export class Sidebar implements OnInit {
         { label: 'Reprogramar/Cancelar', url: '/compras/reprogramar' },
       ],
     },
+
     RECEPCION: {
       label: 'Recepción',
       icon: 'bi-box-seam',
@@ -71,6 +69,7 @@ export class Sidebar implements OnInit {
         { label: 'Pedidos Pendientes', url: '/recepcion/pendientes' },
       ],
     },
+
     INVENTARIO: {
       label: 'Kárdex',
       icon: 'bi-journal-text',
@@ -80,6 +79,7 @@ export class Sidebar implements OnInit {
         { label: 'Ficha Técnica', url: '/inventario/ficha' },
       ],
     },
+
     PEDIDOS: {
       label: 'Pedidos Dependencia',
       icon: 'bi-bag',
@@ -89,6 +89,7 @@ export class Sidebar implements OnInit {
         { label: 'Verificar Existencia', url: '/pedidos/verificar' },
       ],
     },
+
     PECOSA: {
       label: 'PECOSA',
       icon: 'bi-file-earmark-check',
@@ -103,34 +104,43 @@ export class Sidebar implements OnInit {
   constructor(public authService: AuthService) {}
 
   hasRole(rol: string): boolean {
-  return this.authService.hasRole(rol);
-}
+    return this.authService.hasRole(rol);
+  }
 
   ngOnInit(): void {
 
     this.nombreCompleto = this.authService.getNombreCompleto();
+
     const roles = this.authService.getRoles();
     this.cargo = roles.length > 0 ? roles[0] : 'Usuario';
 
-
     const modulos = this.authService.getModulos();
-      console.log('Módulos del usuario:', modulos); // ← agrega esto
-      console.log('Keys del menuMap:', Object.keys(this.menuMap)); // ← y esto
+
+    console.log('Módulos del usuario:', modulos);
+    console.log('Keys del menuMap:', Object.keys(this.menuMap));
+
     const vistos = new Set<string>();
 
     modulos.forEach(mod => {
 
       const key = mod.descripcion.toUpperCase();
       const item = this.menuMap[key];
+
       if (item && !vistos.has(key)) {
         vistos.add(key);
         this.menuItems.push({ ...item });
         this.openMenus[item.label] = false;
       }
+
     });
 
     if (!vistos.has('DASHBOARD')) {
       this.menuItems.unshift(this.menuMap['DASHBOARD']);
+    }
+
+    // Se agrega temporalmente Recepción aunque el usuario no tenga el módulo.
+    if (!vistos.has('RECEPCION')) {
+      this.menuItems.push(this.menuMap['RECEPCION']);
     }
   }
 
@@ -139,11 +149,11 @@ export class Sidebar implements OnInit {
   }
 
   isOpen(label: string): boolean {
-
     return !!this.openMenus[label];
   }
 
   logout(): void {
     this.authService.logout();
   }
+
 }

@@ -18,6 +18,8 @@ import { OrdenForm } from './components/pages/orden-form/orden-form';
 import { RequerimientosComponent } from './components/pages/requerimiento-lista-requerimientos/lista-requerimientos';
 import { CrearProformaComponent } from './components/pages/requerimiento-proformas/requerimiento-proformas';
 import { EvaluarProformasComponent } from './components/pages/requerimiento-comparar-proformas/requerimiento-comparar-proformas';
+import { RecepcionVerificarProductosComponent } from './components/pages/recepcion-verificar-productos/recepcion-verificar-productos';
+import { RecepcionPedidosPendientesComponent } from './components/pages/recepcion-pedidos-pendientes/recepcion-pedidos-pendientes';
 
 export const routes: Routes = [
   // Ruta independiente
@@ -57,8 +59,8 @@ export const routes: Routes = [
       {path: 'requerimientos/proformas', component: CrearProformaComponent},
       {path: 'requerimientos/comparar', component: EvaluarProformasComponent},
 
-     
-
+      { path: 'recepcion/verificar', component: RecepcionVerificarProductosComponent },
+      { path: 'recepcion/pendientes', component: RecepcionPedidosPendientesComponent },
 
       // { 
       //   path: 'ordenes/detalle/:id', 
