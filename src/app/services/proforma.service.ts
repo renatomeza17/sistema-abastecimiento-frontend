@@ -9,72 +9,33 @@ import { ProformaRequestDTO } from '../api/request/requerimiento-request';
   providedIn: 'root',
 })
 export class ProformaService {
- 
-
-  // Endpoints configurados en tus @RequestMapping de Java
   private urlProformas = `${environment.apiUrl}/api/proformas`;
-  private urlRequerimientos = `${environment.apiUrl}/api/requerimientos`;
-  // private apiUrl = `${environment.apiUrl}/api/proformas`;
 
   constructor(private http: HttpClient) { }
 
-  // Consume tu nuevo método para listar solo las proformas en estado "ELEGIDA"
+  crear(dto: ProformaRequestDTO): Observable<ProformaResponseDTO> {
+    // El backend interceptará el token JWT y le asignará el proveedor correspondiente
+    return this.http.post<ProformaResponseDTO>(this.urlProformas, dto);
+  }
+
+  // REFACTORIZADO: Ya no le pasamos el ID por parámetro de URL
+  porProveedorLogueado(): Observable<ProformaResponseDTO[]> {
+    return this.http.get<ProformaResponseDTO[]>(`${this.urlProformas}/mis-proformas`);
+  }
+
   listarElegidas(): Observable<any[]> {
     return this.http.get<any[]>(`${this.urlProformas}/elegidas`);
   }
 
-
-
-  
   consultarPorId(id: number): Observable<any> {
-    //  (ej: /api/proformas/5)
     return this.http.get<any>(`${this.urlProformas}/${id}`);
   }
-
-
-  // // Consume tu endpoint de requerimientos en estado "APROBADO" (o el listado general)
-  // listarRequerimientosAprobados(): Observable<any[]> {
-  //   // Si manejas estados en mayúsculas en tu Java:
-  //   return this.http.get<any[]>(`${this.urlRequerimientos}/estado/APROBADO`);
-
-    
-  // }
-
-
-
-
 
   listarPorRequerimiento(idRequerimiento: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.urlProformas}/requerimiento/${idRequerimiento}`);
   }
 
-
-
-
-
-
-
-
-
-  crear(dto: ProformaRequestDTO): Observable<ProformaResponseDTO> {
-    return this.http.post<ProformaResponseDTO>(this.urlProformas, dto);
-  }
-
-  porRequerimiento(id: number): Observable<ProformaResponseDTO[]> {
-    return this.http.get<ProformaResponseDTO[]>(
-      `${this.urlProformas}/requerimiento/${id}`
-    );
-  }
-
-  porProveedor(id: number): Observable<ProformaResponseDTO[]> {
-    return this.http.get<ProformaResponseDTO[]>(
-      `${this.urlProformas}/proveedor/${id}`
-    );
-  }
-
   elegir(id: number): Observable<ProformaResponseDTO> {
-    return this.http.patch<ProformaResponseDTO>(
-      `${this.urlProformas}/${id}/elegir`, null
-    );
+    return this.http.patch<ProformaResponseDTO>(`${this.urlProformas}/${id}/elegir`, null);
   }
 }

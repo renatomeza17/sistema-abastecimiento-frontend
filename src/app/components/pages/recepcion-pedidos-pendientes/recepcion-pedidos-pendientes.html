@@ -1,0 +1,246 @@
+<div class="container-fluid py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">Pedidos Pendientes</h2>
+      <p class="text-muted mb-0">HU09 - Registro de pedidos pendientes por entregas inválidas</p>
+    </div>
+
+    <button class="btn btn-primary" (click)="cargarPedidos()">
+      <i class="bi bi-arrow-clockwise me-1"></i>
+      Actualizar
+    </button>
+  </div>
+
+  @if (mensaje) {
+    <div class="alert alert-success">{{ mensaje }}</div>
+  }
+
+  @if (error) {
+    <div class="alert alert-danger">{{ error }}</div>
+  }
+
+  <div class="row g-3 mb-4">
+
+    <div class="col-md-3">
+      <div class="card stat-card">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="stat-icon bg-warning-subtle text-warning">
+            <i class="bi bi-clock"></i>
+          </div>
+          <div>
+            <h3 class="fw-bold mb-0">{{ totalPendientes() }}</h3>
+            <p class="text-muted mb-0">Pendientes</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card stat-card">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="stat-icon bg-primary-subtle text-primary">
+            <i class="bi bi-box-seam"></i>
+          </div>
+          <div>
+            <h3 class="fw-bold mb-0">{{ totalEnProceso() }}</h3>
+            <p class="text-muted mb-0">En proceso</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card stat-card">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="stat-icon bg-success-subtle text-success">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div>
+            <h3 class="fw-bold mb-0">{{ totalResueltos() }}</h3>
+            <p class="text-muted mb-0">Resueltos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card stat-card">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="stat-icon bg-danger-subtle text-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+          </div>
+          <div>
+            <h3 class="fw-bold mb-0">{{ pedidos.length }}</h3>
+            <p class="text-muted mb-0">Total incidencias</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card filter-card mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+
+        <div class="col-md-9">
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-search"></i>
+            </span>
+
+            <input
+              class="form-control"
+              type="text"
+              placeholder="Buscar por orden, proveedor o motivo..."
+              [(ngModel)]="busqueda">
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="estadoFiltro">
+            <option value="">Estado</option>
+            <option value="PENDIENTE">Pendiente</option>
+            <option value="EN_PROCESO">En proceso</option>
+            <option value="RESUELTO">Resuelto</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  @if (pedidosFiltrados().length === 0) {
+
+    <div class="alert alert-secondary text-center py-5">
+      <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+      <h5 class="mt-2 mb-1">No hay pedidos pendientes registrados.</h5>
+      <p class="mb-0 text-muted">Cuando registres una incidencia desde Verificación, aparecerá aquí.</p>
+    </div>
+
+  } @else {
+
+    <div class="card table-card">
+      <div class="card-body">
+
+        <h5 class="fw-bold mb-1">Lista de Pedidos Pendientes</h5>
+        <p class="text-muted mb-4">Seguimiento de entregas con problemas</p>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+
+            <thead>
+              <tr>
+                <th>N° Pedido</th>
+                <th>Orden Compra</th>
+                <th>Proveedor</th>
+                <th>Motivo</th>
+                <th>Fecha Registro</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (pedido of pedidosFiltrados(); track pedido.idPedidoPendiente; let i = $index) {
+                <tr>
+                  <td class="fw-bold text-primary">
+                    PEN-2026-{{ i + 1 }}
+                  </td>
+
+                  <td>
+                    {{ pedido.ordenCompra?.codigo || 'Sin orden' }}
+                  </td>
+
+                  <td>
+                    {{ pedido.ordenCompra?.proveedor?.razonSocial || 'Proveedor no asignado' }}
+                  </td>
+
+                  <td>
+                    {{ pedido.motivo }}
+                  </td>
+
+                  <td>
+                    {{ pedido.fechaRegistro | date:'dd/MM/yyyy HH:mm' }}
+                  </td>
+
+                  <td>
+                    <span
+                      class="badge"
+                      [ngClass]="{
+                        'bg-warning text-dark': pedido.estado === 'PENDIENTE',
+                        'bg-primary': pedido.estado === 'EN_PROCESO',
+                        'bg-success': pedido.estado === 'RESUELTO'
+                      }">
+                      {{ pedido.estado }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <button
+                      class="btn btn-outline-dark btn-sm me-2"
+                      (click)="seleccionarPedido(pedido)">
+                      <i class="bi bi-eye"></i>
+                    </button>
+
+                    <button
+                      class="btn btn-success btn-sm"
+                      [disabled]="pedido.estado === 'RESUELTO'"
+                      (click)="resolverPedido(pedido)">
+                      Resolver
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  }
+
+  @if (pedidoSeleccionado) {
+    <div class="card mt-4">
+
+      <div class="card-header bg-white">
+        <h5 class="fw-bold mb-1">Detalle del Pedido Pendiente</h5>
+        <p class="text-muted mb-0">
+          {{ pedidoSeleccionado.ordenCompra?.codigo || 'Sin orden asociada' }}
+        </p>
+      </div>
+
+      <div class="card-body">
+        <p>
+          <strong>Proveedor:</strong>
+          {{ pedidoSeleccionado.ordenCompra?.proveedor?.razonSocial || 'No asignado' }}
+        </p>
+
+        <p>
+          <strong>Motivo:</strong>
+          {{ pedidoSeleccionado.motivo }}
+        </p>
+
+        <p>
+          <strong>Observación:</strong>
+          {{ pedidoSeleccionado.observacion || 'Sin observación' }}
+        </p>
+
+        <p>
+          <strong>Estado:</strong>
+          {{ pedidoSeleccionado.estado }}
+        </p>
+
+        <p>
+          <strong>Fecha Registro:</strong>
+          {{ pedidoSeleccionado.fechaRegistro | date:'dd/MM/yyyy HH:mm' }}
+        </p>
+      </div>
+
+    </div>
+  }
+
+</div>

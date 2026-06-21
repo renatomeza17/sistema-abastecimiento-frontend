@@ -1,0 +1,213 @@
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="text-dark fw-bold mb-1">Control de Inventario y Kárdex</h2>
+      <p class="text-muted small mb-0">Visualiza las existencias reales en almacén y el historial de movimientos.</p>
+    </div>
+    <a routerLink="/kardex-nuevo" class="btn btn-primary d-flex align-items-center gap-2 px-3 fw-semibold shadow-sm">
+      <i class="bi bi-plus-circle"></i> Aperturar Ficha Técnica (HU11)
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-3">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 text-center">
+          <thead class="table-light text-uppercase fs-7 text-secondary fw-bold">
+            <tr>
+              <th scope="col" class="py-3">ID Kárdex</th>
+              <th scope="col">Código Item</th>
+              <th scope="col" class="text-start">Descripción del Producto</th>
+              <th scope="col">Ubicación Física</th>
+              <th scope="col">Stock Mínimo</th>
+              <th scope="col">Stock Actual</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="fs-6">
+            <tr *ngFor="let item of inventario" class="border-bottom">
+              <td class="fw-bold text-secondary py-3">#{{ item.idKardex }}</td>
+              <td><span class="badge bg-light text-dark border">{{ item.codigoProducto || 'S/C' }}</span></td>
+              <td class="text-start fw-medium text-dark">{{ item.nombreProducto }}</td>
+              <td><small class="text-muted"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ item.ubicacionAlmacen }}</small></td>
+              <td class="fw-bold text-muted">{{ item.stockMinimo }}</td>
+              <td class="fw-bold" [ngClass]="item.stockActual <= item.stockMinimo ? 'text-danger' : 'text-success'">
+                {{ item.stockActual }}
+              </td>
+              <td>
+                <span *ngIf="item.stockActual <= item.stockMinimo" class="badge bg-danger-subtle text-danger px-2.5 py-1.5 rounded-pill fs-7">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Stock Alerta
+                </span>
+                <span *ngIf="item.stockActual > item.stockMinimo" class="badge bg-success-subtle text-success px-2.5 py-1.5 rounded-pill fs-7">
+                  <i class="bi bi-check-circle-fill me-1"></i> Óptimo
+                </span>
+              </td>
+              <td>
+                <div class="d-flex justify-content-center gap-2">
+                <button (click)="prepararMovimiento(item)" class="btn btn-primary btn-sm rounded-2 px-2.5 d-inline-flex align-items-center gap-1 shadow-xs fs-7" data-bs-toggle="modal" data-bs-target="#modalNuevoMovimiento">
+                    <i class="bi bi-arrow-left-right"></i> + Movimiento
+                </button>
+                <button (click)="verHistorial(item)" class="btn btn-outline-dark btn-sm rounded-2 px-2.5 d-inline-flex align-items-center gap-1 shadow-xs fs-7" > 
+                  <i class="bi bi-clock-history"></i> Historial
+                  <!-- data-bs-toggle="modal" data-bs-target="#modalHistorial" -->
+                </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="inventario.length === 0">
+              <td colspan="8" class="text-center py-5 text-muted">
+                <i class="bi bi-box-seam fs-1 d-block mb-2 text-secondary"></i>
+                No hay productos registrados en el Kárdex actualmente.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalNuevoMovimiento" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modalMovLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-primary text-white py-3">
+          <h5 class="modal-title fw-bold" id="modalMovLabel">
+            <i class="bi bi-box-seam me-2"></i> Registrar Movimiento de Almacén
+          </h5>
+          <button type="button" class="btn-close btn-close-white" id="btn-cerrar-modal-mov" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3 p-3 bg-light rounded-2 border">
+            <span class="text-muted small uppercase d-block">Producto Seleccionado:</span>
+            <strong class="text-dark fs-6">{{ productoSeleccionadoNombre }}</strong>
+          </div>
+
+
+
+          <form #movForm="ngForm" (ngSubmit)="guardarMovimiento()">
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-secondary small">Tipo de Operación *</label>
+              <select class="form-select" [(ngModel)]="movimientoForm.tipoMovimiento" name="tipoMovimiento" required>
+                <option value="ENTRADA">🟢 ENTRADA (Ingreso por Orden de Compra)</option>
+                <option value="SALIDA">🔴 SALIDA (Despacho por PECOSA)</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-secondary small">Cantidad Contada *</label>
+              <input type="number" class="form-select text-start" [(ngModel)]="movimientoForm.cantidad" name="cantidad" min="1" required>
+            </div>
+
+
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-secondary small">Documento de Referencia / Sustento *</label>
+              
+              <select *ngIf="!loadingDocumentos" class="form-select bg-light" [(ngModel)]="movimientoForm.documentoReferencia" name="documentoReferencia" required>
+                <option value="" disabled selected>-- Elija un documento válido --</option>
+                <option *ngFor="let doc of documentosDisponibles" [value]="doc">{{ doc }}</option>
+              </select>
+              
+              <div *ngIf="loadingDocumentos" class="text-primary small mt-1 d-flex align-items-center gap-2">
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+                Consultando documentos autorizados en la base de datos...
+              </div>
+
+            </div>
+
+            <!-- <div class="mb-3">
+              <label class="form-label fw-semibold text-secondary small">Documento de Referencia / Sustento *</label>
+              <input type="text" class="form-control" [(ngModel)]="movimientoForm.documentoReferencia" name="documentoReferencia" placeholder="Ej: OC-2026-045 o PECOSA-12" required>
+              <div class="form-text text-muted fs-7">Indique el código del documento físico que acompaña la mercadería.</div>
+            </div> -->
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-secondary small">Observaciones / Detalles</label>
+              <textarea class="form-control" [(ngModel)]="movimientoForm.observaciones" name="observaciones" rows="2" placeholder="Ej: Recepción conforme según guía de almacén central..."></textarea>
+            </div>
+
+            <div class="text-end gap-2 mt-4">
+              <button type="button" class="btn btn-secondary btn-sm rounded-2 px-3 me-2" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-success btn-sm rounded-2 px-3 fw-semibold shadow-xs" [disabled]="!movForm.valid">
+                <i class="bi bi-save"></i> Guardar en Kárdex
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="modal fade" id="modalHistorial" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modalHistorialLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-dark text-white py-3">
+          <h5 class="modal-title fw-bold" id="modalHistorialLabel">
+            <i class="bi bi-journal-text me-2 text-warning"></i> Historial de Movimientos
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <span class="text-muted uppercase small d-block">Producto Consultada:</span>
+            <strong class="fs-5 text-dark">{{ productoSeleccionadoNombre }}</strong>
+          </div>
+
+          <div *ngIf="loadingMovimientos" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted small mt-2">Consultando historial en Neon DB...</p>
+          </div>
+
+          <div *ngIf="!loadingMovimientos" class="table-responsive">
+            <table class="table table-sm table-striped align-middle text-center mb-0">
+              <thead class="table-secondary fs-7 text-uppercase text-secondary fw-semibold">
+                <tr>
+                  <th>Fecha/Hora</th>
+                  <th>Tipo</th>
+                  <th>Cantidad</th>
+                  <th>Stock Saldo</th>
+                  <th>Doc. Referencia</th>
+                  <th class="text-start">Observaciones</th>
+                </tr>
+              </thead>
+              <tbody class="fs-7">
+                <tr *ngFor="let mov of historialMovimientos">
+                  <td class="text-muted">{{ mov.fechaMovimiento | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="mov.tipoMovimiento === 'ENTRADA' ? 'bg-success text-white' : 'bg-danger text-white'">
+                      {{ mov.tipoMovimiento }}
+                    </span>
+                  </td>
+                  <td class="fw-bold" [ngClass]="mov.tipoMovimiento === 'ENTRADA' ? 'text-success' : 'text-danger'">
+                    {{ mov.tipoMovimiento === 'ENTRADA' ? '+' : '-' }}{{ mov.cantidad }}
+                  </td>
+                  <td class="fw-bold text-dark">{{ mov.saldoStock }}</td>
+                  <td><code class="text-primary fw-medium">{{ mov.documentoReferencia }}</code></td>
+                  <td class="text-start text-wrap"><small class="text-muted">{{ mov.observaciones }}</small></td>
+                </tr>
+                <tr *ngIf="historialMovimientos.length === 0">
+                  <td colspan="6" class="text-center py-4 text-muted">
+                    <i class="bi bi-info-circle me-1"></i> Ficha técnica sin movimientos físicos registrados (Stock Inicial 0).
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer bg-light py-2">
+          <button type="button" class="btn btn-secondary btn-sm rounded-2 px-3 fw-medium" data-bs-dismiss="modal">Cerrar Historial</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

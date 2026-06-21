@@ -45,7 +45,7 @@ export class EvaluarProformasComponent implements OnInit {
     this.mensajeError = '';
     this.cargandoProformas = true;
 
-    this.proformaService.porRequerimiento(req.idRequerimiento).subscribe({
+    this.proformaService.listarPorRequerimiento(req.idRequerimiento).subscribe({
       next: (data) => { this.proformasCandidatas = data; this.cargandoProformas = false; },
       error: (err) => { console.error(err); this.cargandoProformas = false; }
     });

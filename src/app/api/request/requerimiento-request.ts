@@ -10,7 +10,6 @@ export interface DetalleRequestDTO {
 
 export interface ProformaRequestDTO {
   idRequerimiento: number;
-  idProveedor: number;
   fechaRecepcion: string; // LocalDate viaja como string (YYYY-MM-DD)
   productos: DetalleProformaRequestDTO[];
 }
