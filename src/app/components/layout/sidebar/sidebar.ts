@@ -74,8 +74,8 @@ export class Sidebar implements OnInit {
       label: 'Kárdex',
       icon: 'bi-journal-text',
       children: [
-        { label: 'Ver Kárdex', url: '/inventario/kardex' },
-        { label: 'Nuevo Asiento', url: '/inventario/nuevo' },
+        { label: 'Ver Kárdex', url: '/inventario/kardex-lista' },
+        { label: 'Nuevo Asiento', url: '/inventario/nuevo-kardex' },
         { label: 'Ficha Técnica', url: '/inventario/ficha' },
       ],
     },

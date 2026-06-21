@@ -19,6 +19,8 @@ import { OrdenForm } from './components/pages/orden-form/orden-form';
 import { RequerimientosComponent } from './components/pages/requerimiento-lista-requerimientos/lista-requerimientos';
 import { CrearProformaComponent } from './components/pages/requerimiento-proformas/requerimiento-proformas';
 import { EvaluarProformasComponent } from './components/pages/requerimiento-comparar-proformas/requerimiento-comparar-proformas';
+import { KardexNuevo } from './components/pages/kardex-nuevo/kardex-nuevo';
+import { KardexLista } from './components/pages/kardex-lista/kardex-lista';
 
 import { RecepcionVerificarProductosComponent } from './components/pages/recepcion-verificar-productos/recepcion-verificar-productos';
 import { RecepcionPedidosPendientesComponent } from './components/pages/recepcion-pedidos-pendientes/recepcion-pedidos-pendientes';
@@ -49,6 +51,10 @@ export const routes: Routes = [
 
       { path: 'recepcion/verificar', component: RecepcionVerificarProductosComponent },
       { path: 'recepcion/pendientes', component: RecepcionPedidosPendientesComponent },
+
+
+      { path: 'inventario/nuevo-kardex', component: KardexNuevo },
+      {path: 'inventario/kardex-lista', component: KardexLista},
 
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
