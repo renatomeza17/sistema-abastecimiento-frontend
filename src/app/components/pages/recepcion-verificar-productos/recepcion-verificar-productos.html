@@ -6,6 +6,7 @@
   </div>
 
   <div class="row g-3 mb-4">
+
     <div class="col-md-3">
       <div class="card stat-card">
         <div class="card-body d-flex align-items-center gap-3">
@@ -13,8 +14,8 @@
             <i class="bi bi-truck"></i>
           </div>
           <div>
-            <h3 class="fw-bold mb-0">{{ ordenes.length }}</h3>
-            <p class="text-muted mb-0">Entregas Hoy</p>
+            <h3 class="fw-bold mb-0">{{ totalEntregasHoy() }}</h3>
+            <p class="text-muted mb-0">Entregas</p>
           </div>
         </div>
       </div>
@@ -27,7 +28,7 @@
             <i class="bi bi-clipboard-check"></i>
           </div>
           <div>
-            <h3 class="fw-bold mb-0">{{ ordenes.length }}</h3>
+            <h3 class="fw-bold mb-0">{{ pendientesVerificar() }}</h3>
             <p class="text-muted mb-0">Pend. Verificar</p>
           </div>
         </div>
@@ -41,8 +42,8 @@
             <i class="bi bi-check-circle"></i>
           </div>
           <div>
-            <h3 class="fw-bold mb-0">45</h3>
-            <p class="text-muted mb-0">Conformes (mes)</p>
+            <h3 class="fw-bold mb-0">{{ totalConformes() }}</h3>
+            <p class="text-muted mb-0">Conformes</p>
           </div>
         </div>
       </div>
@@ -55,26 +56,29 @@
             <i class="bi bi-exclamation-triangle"></i>
           </div>
           <div>
-            <h3 class="fw-bold mb-0">3</h3>
+            <h3 class="fw-bold mb-0">{{ totalIncidencias() }}</h3>
             <p class="text-muted mb-0">Incidencias</p>
           </div>
         </div>
       </div>
     </div>
+
   </div>
 
   <div class="card filter-card mb-4">
     <div class="card-body">
       <div class="row g-3">
+
         <div class="col-md-8">
           <div class="input-group">
             <span class="input-group-text bg-white">
               <i class="bi bi-search"></i>
             </span>
+
             <input
               type="text"
               class="form-control"
-              placeholder="Buscar por orden, proveedor o guía..."
+              placeholder="Buscar por orden, proveedor, RUC o requerimiento..."
               [(ngModel)]="busqueda">
           </div>
         </div>
@@ -84,32 +88,52 @@
             <option value="">Estado</option>
             <option value="ENVIADA">Enviada</option>
             <option value="PENDIENTE">Pendiente</option>
-            <option value="VERIFICADO">Verificado</option>
+            <option value="APROBADA">Aprobada</option>
+            <option value="ARCHIVADA">Archivada</option>
           </select>
         </div>
 
         <div class="col-md-2">
-          <input type="date" class="form-control" [(ngModel)]="fechaFiltro">
+          <input
+            type="date"
+            class="form-control"
+            [(ngModel)]="fechaFiltro">
         </div>
+
       </div>
     </div>
   </div>
 
   @if (mensaje) {
-    <div class="alert alert-success">{{ mensaje }}</div>
+    <div class="alert alert-success">
+      <i class="bi bi-check-circle me-1"></i>
+      {{ mensaje }}
+    </div>
   }
 
   @if (error) {
-    <div class="alert alert-danger">{{ error }}</div>
+    <div class="alert alert-danger">
+      <i class="bi bi-exclamation-triangle me-1"></i>
+      {{ error }}
+    </div>
+  }
+
+  @if (cargando) {
+    <div class="alert alert-info text-center py-4">
+      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+      Cargando órdenes para verificación...
+    </div>
   }
 
   <div class="card table-card">
     <div class="card-body">
+
       <h5 class="fw-bold mb-1">Entregas Recibidas</h5>
       <p class="text-muted mb-4">Productos recibidos pendientes de verificación</p>
 
       <div class="table-responsive">
         <table class="table align-middle">
+
           <thead>
             <tr>
               <th>N° Entrega</th>
@@ -124,10 +148,11 @@
           </thead>
 
           <tbody>
+
             @for (orden of ordenesFiltradas(); track orden.idOrden; let i = $index) {
               <tr>
                 <td class="fw-bold text-primary">
-                  ENT-2026-{{ (i + 1).toString().padStart(3, '0') }}
+                  ENT-2026-{{ i + 1 }}
                 </td>
 
                 <td>
@@ -136,22 +161,46 @@
                   </span>
                 </td>
 
-                <td>{{ orden.nombreProveedor }}</td>
-
-                <td>GR-{{ orden.idOrden }}-{{ orden.codigoRequerimiento || '000' }}</td>
-
-                <td>{{ orden.fechaCreacion | date:'dd/MM/yyyy' }}</td>
-
-                <td>{{ orden.detalles?.length || 0 }}</td>
+                <td>
+                  <div class="fw-semibold">
+                    {{ orden.nombreProveedor || 'Proveedor no asignado' }}
+                  </div>
+                  <small class="text-muted">
+                    RUC: {{ orden.rucProveedor || 'Sin RUC' }}
+                  </small>
+                </td>
 
                 <td>
-                  <span class="badge bg-info-subtle text-primary">
+                  GR-{{ orden.idOrden }}-{{ orden.codigoRequerimiento || '000' }}
+                </td>
+
+                <td>
+                  {{ orden.fechaCreacion | date:'dd/MM/yyyy' }}
+                </td>
+
+                <td>
+                  <span class="badge bg-secondary-subtle text-dark">
+                    {{ orden.detalles ? orden.detalles.length : 0 }}
+                  </span>
+                </td>
+
+                <td>
+                  <span
+                    class="badge"
+                    [ngClass]="{
+                      'bg-info-subtle text-primary': orden.estado === 'ENVIADA',
+                      'bg-warning-subtle text-warning': orden.estado === 'PENDIENTE',
+                      'bg-success-subtle text-success': orden.estado === 'APROBADA',
+                      'bg-secondary-subtle text-dark': orden.estado === 'ARCHIVADA'
+                    }">
                     {{ orden.estado }}
                   </span>
                 </td>
 
                 <td>
-                  <button class="btn btn-outline-dark btn-sm" (click)="seleccionarOrden(orden)">
+                  <button
+                    class="btn btn-outline-dark btn-sm"
+                    (click)="seleccionarOrden(orden)">
                     <i class="bi bi-clipboard-check me-1"></i>
                     Verificar
                   </button>
@@ -159,68 +208,163 @@
               </tr>
             }
 
-            @if (ordenesFiltradas().length === 0) {
+            @if (!cargando && ordenesFiltradas().length === 0) {
               <tr>
-                <td colspan="8" class="text-center text-muted py-4">
-                  No hay entregas pendientes de verificación.
+                <td colspan="8" class="text-center text-muted py-5">
+                  <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                  <h6 class="fw-bold mb-1">No hay entregas pendientes de verificación.</h6>
+                  <p class="mb-0">
+                    Revisa que existan órdenes con productos o que el filtro no esté ocultando los datos.
+                  </p>
                 </td>
               </tr>
             }
+
           </tbody>
+
         </table>
       </div>
+
     </div>
   </div>
 
   @if (ordenSeleccionada) {
     <div class="card mt-4">
+
       <div class="card-header bg-white">
-        <h5 class="fw-bold mb-1">Detalle de {{ ordenSeleccionada.codigo }}</h5>
-        <p class="text-muted mb-0">{{ ordenSeleccionada.nombreProveedor }}</p>
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h5 class="fw-bold mb-1">
+              Detalle de {{ ordenSeleccionada.codigo }}
+            </h5>
+            <p class="text-muted mb-0">
+              {{ ordenSeleccionada.nombreProveedor || 'Proveedor no asignado' }}
+            </p>
+          </div>
+
+          <span class="badge bg-info-subtle text-primary">
+            {{ ordenSeleccionada.estado }}
+          </span>
+        </div>
       </div>
 
       <div class="card-body">
-        <div class="table-responsive">
-          <table class="table align-middle">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Cantidad esperada</th>
-                <th>Conforme</th>
-                <th>Incidencia</th>
-              </tr>
-            </thead>
 
-            <tbody>
-              @for (detalle of ordenSeleccionada.detalles; track detalle.id) {
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <small class="text-muted d-block">Orden de Compra</small>
+            <strong>{{ ordenSeleccionada.codigo }}</strong>
+          </div>
+
+          <div class="col-md-4">
+            <small class="text-muted d-block">Requerimiento</small>
+            <strong>{{ ordenSeleccionada.codigoRequerimiento || 'No asignado' }}</strong>
+          </div>
+
+          <div class="col-md-4">
+            <small class="text-muted d-block">Fecha</small>
+            <strong>{{ ordenSeleccionada.fechaCreacion | date:'dd/MM/yyyy' }}</strong>
+          </div>
+        </div>
+
+        @if (ordenSeleccionada.detalles.length === 0) {
+          <div class="alert alert-warning">
+            Esta orden no tiene productos registrados. No se puede verificar una entrega vacía, aunque el sistema aparentemente lo intentó con entusiasmo.
+          </div>
+        } @else {
+
+          <div class="table-responsive">
+            <table class="table align-middle">
+
+              <thead>
                 <tr>
-                  <td>{{ detalle.nombreProducto }}</td>
-                  <td>{{ detalle.cantidad }}</td>
-                  <td>
-                    <input type="checkbox" class="form-check-input"
-                      [(ngModel)]="productosVerificados[detalle.id]">
-                  </td>
-                  <td>
-                    <input type="text" class="form-control form-control-sm"
-                      placeholder="Sin incidencia"
-                      [(ngModel)]="incidencias[detalle.id]">
-                  </td>
+                  <th>Producto</th>
+                  <th>Cantidad esperada</th>
+                  <th>Precio Unitario</th>
+                  <th>Subtotal</th>
+                  <th>Conforme</th>
+                  <th>Incidencia</th>
                 </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+              </thead>
 
-        <div class="d-flex justify-content-end gap-2">
-          <button class="btn btn-outline-warning" (click)="registrarPedidoPendiente()">
-            Registrar pedido pendiente
-          </button>
+              <tbody>
+                @for (detalle of (ordenSeleccionada.detalles || []); track detalle.id) {
+                  <tr>
+                    <td>
+                      <div class="fw-semibold">
+                        {{ detalle.nombreProducto }}
+                      </div>
+                      <small class="text-muted">
+                        ID Producto: {{ detalle.productoId }}
+                      </small>
+                    </td>
 
-          <button class="btn btn-success" [disabled]="!todosVerificados()" (click)="confirmarRecepcion()">
-            Confirmar recepción
-          </button>
-        </div>
+                    <td>
+                      {{ detalle.cantidad }}
+                    </td>
+
+                    <td>
+                      S/ {{ detalle.precioUnitario | number:'1.2-2' }}
+                    </td>
+
+                    <td>
+                      S/ {{ detalle.subtotal | number:'1.2-2' }}
+                    </td>
+
+                    <td>
+                      <div class="form-check">
+                        <input
+                          type="checkbox"
+                          class="form-check-input"
+                          [(ngModel)]="productosVerificados[detalle.id]">
+
+                        <label class="form-check-label">
+                          Conforme
+                        </label>
+                      </div>
+                    </td>
+
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control form-control-sm"
+                        placeholder="Sin incidencia"
+                        [(ngModel)]="incidencias[detalle.id]">
+                    </td>
+                  </tr>
+                }
+              </tbody>
+
+            </table>
+          </div>
+
+          <div class="alert alert-light border mt-3">
+            <strong>Nota:</strong>
+            Para confirmar la recepción, todos los productos deben estar marcados como conformes.
+            Si hay faltantes, daños o diferencias, registra una incidencia y usa “Registrar pedido pendiente”.
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button
+              class="btn btn-outline-warning"
+              (click)="registrarPedidoPendiente()">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              Registrar pedido pendiente
+            </button>
+
+            <button
+              class="btn btn-success"
+              [disabled]="!todosVerificados()"
+              (click)="confirmarRecepcion()">
+              <i class="bi bi-check-circle me-1"></i>
+              Confirmar recepción
+            </button>
+          </div>
+
+        }
+
       </div>
+
     </div>
   }
 

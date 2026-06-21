@@ -35,25 +35,43 @@ export class RecepcionVerificarProductosComponent implements OnInit {
   }
 
   cargarOrdenes(): void {
-  this.cargando = true;
-  this.error = '';
-  this.mensaje = '';
+    this.cargando = true;
+    this.error = '';
+    this.mensaje = '';
 
-  this.recepcionService.listarOrdenesParaVerificacion().subscribe({
-    next: (data) => {
+    this.recepcionService.listarOrdenesParaVerificacion().subscribe({
+      next: (data) => {
+        console.log('ÓRDENES RECIBIDAS EN RECEPCIÓN:', data);
 
-      console.log('Órdenes recibidas:', data);
+        const ordenesNormalizadas = data.map(orden => ({
+          ...orden,
+          detalles: orden.detalles || []
+        }));
 
-      this.ordenes = data;
+        const enviadasConDetalle = ordenesNormalizadas.filter(orden =>
+          orden.estado === 'ENVIADA' &&
+          orden.detalles.length > 0
+        );
 
-      this.cargando = false;
-    },
-    error: () => {
-      this.error = 'No se pudieron cargar las órdenes para verificación.';
-      this.cargando = false;
-    }
-  });
-}
+        const ordenesConDetalleNoCanceladas = ordenesNormalizadas.filter(orden =>
+          orden.detalles.length > 0 &&
+          orden.estado !== 'CANCELADA'
+        );
+
+        this.ordenes = enviadasConDetalle.length > 0
+          ? enviadasConDetalle
+          : ordenesConDetalleNoCanceladas;
+
+        this.cargando = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar órdenes para recepción:', error);
+        this.error = 'No se pudieron cargar las órdenes para verificación.';
+        this.cargando = false;
+      }
+    });
+  }
+
   ordenesFiltradas(): OrdenResponseDTO[] {
     return this.ordenes.filter(orden => {
       const texto = this.busqueda.toLowerCase().trim();
@@ -62,7 +80,8 @@ export class RecepcionVerificarProductosComponent implements OnInit {
         !texto ||
         orden.codigo?.toLowerCase().includes(texto) ||
         orden.nombreProveedor?.toLowerCase().includes(texto) ||
-        orden.rucProveedor?.toLowerCase().includes(texto);
+        orden.rucProveedor?.toLowerCase().includes(texto) ||
+        orden.codigoRequerimiento?.toLowerCase().includes(texto);
 
       const coincideEstado =
         !this.estadoFiltro || orden.estado === this.estadoFiltro;
@@ -82,6 +101,10 @@ export class RecepcionVerificarProductosComponent implements OnInit {
     return this.ordenes.filter(orden => orden.estado === 'ENVIADA').length;
   }
 
+  totalConformes(): number {
+    return 0;
+  }
+
   totalIncidencias(): number {
     return Object.values(this.incidencias)
       .filter(valor => valor.trim().length > 0)
@@ -89,15 +112,17 @@ export class RecepcionVerificarProductosComponent implements OnInit {
   }
 
   seleccionarOrden(orden: OrdenResponseDTO): void {
-    this.ordenSeleccionada = orden;
+    this.ordenSeleccionada = {
+      ...orden,
+      detalles: orden.detalles || []
+    };
+
     this.productosVerificados = {};
     this.incidencias = {};
     this.error = '';
     this.mensaje = '';
 
-    const detalles = orden.detalles || [];
-
-    detalles.forEach(detalle => {
+    this.ordenSeleccionada.detalles.forEach(detalle => {
       this.productosVerificados[detalle.id] = false;
       this.incidencias[detalle.id] = '';
     });
@@ -120,6 +145,7 @@ export class RecepcionVerificarProductosComponent implements OnInit {
 
     if (!this.todosVerificados()) {
       this.error = 'Debes verificar todos los productos antes de confirmar la recepción.';
+      this.mensaje = '';
       return;
     }
 
@@ -136,8 +162,10 @@ export class RecepcionVerificarProductosComponent implements OnInit {
         this.ordenSeleccionada = undefined;
         this.cargarOrdenes();
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error al confirmar recepción:', error);
         this.error = 'No se pudo confirmar la recepción.';
+        this.mensaje = '';
       }
     });
   }
@@ -152,6 +180,7 @@ export class RecepcionVerificarProductosComponent implements OnInit {
 
     if (motivos.length === 0) {
       this.error = 'Debes registrar al menos una incidencia para marcar pedido pendiente.';
+      this.mensaje = '';
       return;
     }
 
@@ -167,8 +196,10 @@ export class RecepcionVerificarProductosComponent implements OnInit {
         this.ordenSeleccionada = undefined;
         this.cargarOrdenes();
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error al registrar pedido pendiente:', error);
         this.error = 'No se pudo registrar el pedido pendiente.';
+        this.mensaje = '';
       }
     });
   }
