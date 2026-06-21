@@ -51,13 +51,20 @@ export class CrearProformaComponent implements OnInit {
       error: (err) => { console.error(err); this.cargando = false; }
     });
   }
-
-  // ── Carga proformas del proveedor logueado ──────────────────
+  
+  // ── Carga proformas del proveedor logueado ─────────────────────
   cargarMisProformas(): void {
     this.cargando = true;
-    this.proformaService.porProveedor(this.idProveedorLogueado).subscribe({
-      next: (data) => { this.misProformas = data; this.cargando = false; },
-      error: (err) => { console.error(err); this.cargando = false; }
+    // Usamos el nuevo método sin IDs quemados en el Front
+    this.proformaService.porProveedorLogueado().subscribe({
+      next: (data) => {         
+        this.misProformas = data; 
+        this.cargando = false; 
+      },
+      error: (err) => { 
+        console.error(err); 
+        this.cargando = false; 
+      }
     });
   }
 
@@ -85,7 +92,7 @@ export class CrearProformaComponent implements OnInit {
     }, 0);
   }
 
-  // ── Envía la proforma ────────────────────────────────────────
+  // ── Envía la proforma al backend con validación de precios ─────────────────
   enviarProforma(): void {
     if (!this.requerimientoSeleccionado) return;
 
@@ -104,9 +111,9 @@ export class CrearProformaComponent implements OnInit {
         precioUnitario: this.preciosInput[d.idProducto]
       }));
 
+    // REFACTORIZADO: Ya no se envía el 'idProveedor' en el cuerpo de la solicitud
     const dto: ProformaRequestDTO = {
       idRequerimiento: this.requerimientoSeleccionado.idRequerimiento,
-      idProveedor: this.idProveedorLogueado,
       fechaRecepcion: new Date().toISOString().split('T')[0],
       productos
     };
