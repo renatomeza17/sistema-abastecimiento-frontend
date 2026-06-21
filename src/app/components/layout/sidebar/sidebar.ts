@@ -76,7 +76,7 @@ export class Sidebar implements OnInit {
       children: [
         { label: 'Ver Kárdex', url: '/inventario/kardex-lista' },
         { label: 'Nuevo Asiento', url: '/inventario/nuevo-kardex' },
-        { label: 'Ficha Técnica', url: '/inventario/ficha' },
+        
       ],
     },
 
