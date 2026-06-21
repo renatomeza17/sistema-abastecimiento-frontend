@@ -93,6 +93,12 @@ export class RecepcionVerificarProductosComponent implements OnInit {
     });
   }
 
+  limpiarFiltros(): void {
+    this.busqueda = '';
+    this.estadoFiltro = '';
+    this.fechaFiltro = '';
+  }
+
   totalEntregasHoy(): number {
     return this.ordenes.length;
   }
@@ -102,13 +108,24 @@ export class RecepcionVerificarProductosComponent implements OnInit {
   }
 
   totalConformes(): number {
-    return 0;
+    return Object.values(this.productosVerificados)
+      .filter(valor => valor)
+      .length;
   }
 
   totalIncidencias(): number {
     return Object.values(this.incidencias)
       .filter(valor => valor.trim().length > 0)
       .length;
+  }
+
+  tieneIncidencias(): boolean {
+    return Object.values(this.incidencias)
+      .some(valor => valor.trim().length > 0);
+  }
+
+  detallesSeleccionados() {
+    return this.ordenSeleccionada?.detalles || [];
   }
 
   seleccionarOrden(orden: OrdenResponseDTO): void {
@@ -122,20 +139,28 @@ export class RecepcionVerificarProductosComponent implements OnInit {
     this.error = '';
     this.mensaje = '';
 
-    this.ordenSeleccionada.detalles.forEach(detalle => {
+    this.detallesSeleccionados().forEach(detalle => {
       this.productosVerificados[detalle.id] = false;
       this.incidencias[detalle.id] = '';
     });
   }
 
+  cerrarDetalle(): void {
+    this.ordenSeleccionada = undefined;
+    this.productosVerificados = {};
+    this.incidencias = {};
+    this.error = '';
+    this.mensaje = '';
+  }
+
   todosVerificados(): boolean {
-    if (!this.ordenSeleccionada || !this.ordenSeleccionada.detalles || this.ordenSeleccionada.detalles.length === 0) {
+    const detalles = this.detallesSeleccionados();
+
+    if (detalles.length === 0) {
       return false;
     }
 
-    return this.ordenSeleccionada.detalles.every(
-      detalle => this.productosVerificados[detalle.id]
-    );
+    return detalles.every(detalle => this.productosVerificados[detalle.id]);
   }
 
   confirmarRecepcion(): void {
@@ -172,6 +197,8 @@ export class RecepcionVerificarProductosComponent implements OnInit {
 
   registrarPedidoPendiente(): void {
     if (!this.ordenSeleccionada) {
+      this.error = 'Debes seleccionar una orden.';
+      this.mensaje = '';
       return;
     }
 
@@ -186,11 +213,18 @@ export class RecepcionVerificarProductosComponent implements OnInit {
 
     const motivoFinal = motivos.join(' | ');
 
+    console.log('Registrando pedido pendiente:', {
+      idOrden: this.ordenSeleccionada.idOrden,
+      motivo: motivoFinal
+    });
+
     this.recepcionService.registrarPedidoPendiente(
       this.ordenSeleccionada.idOrden,
       motivoFinal
     ).subscribe({
-      next: () => {
+      next: (respuesta) => {
+        console.log('Pedido pendiente registrado:', respuesta);
+
         this.mensaje = 'Pedido pendiente registrado correctamente.';
         this.error = '';
         this.ordenSeleccionada = undefined;
@@ -198,7 +232,7 @@ export class RecepcionVerificarProductosComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al registrar pedido pendiente:', error);
-        this.error = 'No se pudo registrar el pedido pendiente.';
+        this.error = `No se pudo registrar el pedido pendiente. Estado: ${error.status}`;
         this.mensaje = '';
       }
     });

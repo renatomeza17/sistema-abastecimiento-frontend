@@ -67,6 +67,7 @@
 
   <div class="card filter-card mb-4">
     <div class="card-body">
+
       <div class="row g-3">
 
         <div class="col-md-8">
@@ -101,6 +102,16 @@
         </div>
 
       </div>
+
+      <div class="d-flex justify-content-end mt-3">
+        <button
+          class="btn btn-outline-secondary btn-sm"
+          (click)="limpiarFiltros()">
+          <i class="bi bi-x-circle me-1"></i>
+          Limpiar filtros
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -242,15 +253,25 @@
             </p>
           </div>
 
-          <span class="badge bg-info-subtle text-primary">
-            {{ ordenSeleccionada.estado }}
-          </span>
+          <div class="d-flex gap-2 align-items-center">
+            <span class="badge bg-info-subtle text-primary">
+              {{ ordenSeleccionada.estado }}
+            </span>
+
+            <button
+              class="btn btn-outline-secondary btn-sm"
+              title="Cerrar detalle"
+              (click)="cerrarDetalle()">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
         </div>
       </div>
 
       <div class="card-body">
 
         <div class="row mb-3">
+
           <div class="col-md-4">
             <small class="text-muted d-block">Orden de Compra</small>
             <strong>{{ ordenSeleccionada.codigo }}</strong>
@@ -265,11 +286,12 @@
             <small class="text-muted d-block">Fecha</small>
             <strong>{{ ordenSeleccionada.fechaCreacion | date:'dd/MM/yyyy' }}</strong>
           </div>
+
         </div>
 
-        @if (ordenSeleccionada.detalles.length === 0) {
+        @if (detallesSeleccionados().length === 0) {
           <div class="alert alert-warning">
-            Esta orden no tiene productos registrados. No se puede verificar una entrega vacía, aunque el sistema aparentemente lo intentó con entusiasmo.
+            Esta orden no tiene productos registrados. No se puede verificar una entrega vacía.
           </div>
         } @else {
 
@@ -288,8 +310,9 @@
               </thead>
 
               <tbody>
-                @for (detalle of (ordenSeleccionada.detalles || []); track detalle.id) {
+                @for (detalle of detallesSeleccionados(); track detalle.id) {
                   <tr>
+
                     <td>
                       <div class="fw-semibold">
                         {{ detalle.nombreProducto }}
@@ -328,9 +351,10 @@
                       <input
                         type="text"
                         class="form-control form-control-sm"
-                        placeholder="Sin incidencia"
+                        placeholder="Ejemplo: producto dañado, faltante o diferente"
                         [(ngModel)]="incidencias[detalle.id]">
                     </td>
+
                   </tr>
                 }
               </tbody>
@@ -345,8 +369,10 @@
           </div>
 
           <div class="d-flex justify-content-end gap-2 mt-3">
+
             <button
               class="btn btn-outline-warning"
+              [disabled]="!tieneIncidencias()"
               (click)="registrarPedidoPendiente()">
               <i class="bi bi-exclamation-triangle me-1"></i>
               Registrar pedido pendiente
@@ -359,6 +385,7 @@
               <i class="bi bi-check-circle me-1"></i>
               Confirmar recepción
             </button>
+
           </div>
 
         }
