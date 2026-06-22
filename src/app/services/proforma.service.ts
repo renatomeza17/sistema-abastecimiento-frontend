@@ -36,6 +36,6 @@ export class ProformaService {
   }
 
   elegir(id: number): Observable<ProformaResponseDTO> {
-    return this.http.patch<ProformaResponseDTO>(`${this.urlProformas}/${id}/elegir`, null);
+    return this.http.patch<ProformaResponseDTO>(`${this.urlProformas}/${id}/elegir`, {});
   }
 }
