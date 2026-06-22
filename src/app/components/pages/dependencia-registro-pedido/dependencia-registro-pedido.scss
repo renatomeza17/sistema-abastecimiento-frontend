@@ -1,0 +1,53 @@
+// Variables locales de tipografía auxiliar
+.fs-7 {
+  font-size: 0.85rem !important;
+}
+.fs-8 {
+  font-size: 0.75rem !important;
+}
+
+// Sobreescrituras de Badges de Bootstrap para un acabado más plano (Subtle design)
+.bg-warning-subtle {
+  background-color: #fff3cd !important;
+  color: #856404 !important;
+}
+.bg-success-subtle {
+  background-color: #d1e7dd !important;
+  color: #0f5132 !important;
+}
+.bg-danger-subtle {
+  background-color: #f8d7da !important;
+  color: #842029 !important;
+}
+.bg-secondary-subtle {
+  background-color: #e2e3e5 !important;
+  color: #41464b !important;
+}
+
+// Animaciones de transición suave para dar fluidez al cambiar de pestaña
+.animate-fade-in {
+  animation: fadeIn 0.35s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Mejoras estéticas en las tablas
+table {
+  tbody {
+    tr {
+      transition: background-color 0.2s ease;
+      &:hover {
+        background-color: rgba(248, 249, 250, 0.85);
+      }
+    }
+  }
+}
