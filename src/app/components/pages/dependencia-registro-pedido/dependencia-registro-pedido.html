@@ -1,0 +1,179 @@
+<div class="container-fluid py-4">
+  
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="text-dark fw-bold m-0">Gestión de Pedidos de Dependencia</h2>
+      <p class="text-muted small m-0">Módulo exclusivo para el abastecimiento interno de oficinas y áreas.</p>
+    </div>
+    
+    <div class="btn-group shadow-sm" role="group">
+      <button type="button" class="btn" 
+              [ngClass]="vistaActiva === 'historial' ? 'btn-primary' : 'btn-outline-primary'"
+              (click)="cambiarVista('historial')">
+        <i class="bi bi-list-task me-1"></i> Historial de Pedidos
+      </button>
+      <button type="button" class="btn" 
+              [ngClass]="vistaActiva === 'nuevo' ? 'btn-primary' : 'btn-outline-primary'"
+              (click)="cambiarVista('nuevo')">
+        <i class="bi bi-plus-circle me-1"></i> Solicitar Nuevo Pedido
+      </button>
+    </div>
+  </div>
+
+  <hr class="text-muted opacity-25 my-3">
+
+  <div *ngIf="vistaActiva === 'historial'" class="card border-0 shadow-sm animate-fade-in">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light text-uppercase fs-7 text-secondary">
+            <tr>
+              <th class="ps-4 py-3">Código</th>
+              <th class="py-3">Descripción General</th>
+              <th class="py-3">Fecha Solicitud</th>
+              <th class="py-3">Estado</th>
+              <th class="py-3 text-end pe-4">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ped of pedidosHistorial">
+              <td class="ps-4 fw-bold text-primary">{{ ped.codigo }}</td>
+              <td class="text-truncate" style="max-width: 300px;">{{ ped.descripcion }}</td>
+              <td>{{ ped.fechaCreacion | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <span class="badge rounded-pill px-3 py-2 fs-8"
+                      [ngClass]="{
+                        'bg-warning-subtle text-warning': ped.estado === 'PENDIENTE',
+                        'bg-success-subtle text-success': ped.estado === 'FINALIZADO',
+                        'bg-danger-subtle text-danger': ped.estado === 'CANCELADO'
+                      }">
+                  {{ ped.estado }}
+                </span>
+              </td>
+              <td class="text-end pe-4">
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Ver detalles del pedido">
+                  <i class="bi bi-eye me-1"></i> Ver Detalles
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="pedidosHistorial.length === 0">
+              <td colspan="5" class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+                No registra ningún pedido solicitado hasta la fecha.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="vistaActiva === 'nuevo'" class="row g-4 animate-fade-in">
+    
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+          <h5 class="fw-bold text-dark m-0">Datos del Pedido</h5>
+        </div>
+        <div class="card-body px-4">
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-semibold">Descripción del Pedido / Justificación</label>
+            <textarea class="form-control bg-light border-0" rows="5" 
+                      placeholder="Ej: Solicito útiles de escritorio para el personal administrativo correspondiente al presente mes."
+                      [(ngModel)]="descripcionGeneral"></textarea>
+          </div>
+          <div class="alert alert-info border-0 shadow-sm fs-7 mb-0">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            Recuerde que el código correlativo y la fecha de creación se asignarán automáticamente al guardar.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+          <h5 class="fw-bold text-dark m-0">Añadir Artículos al Pedido</h5>
+        </div>
+        
+        <div class="card-body px-4">
+          <div class="row g-3 bg-light p-3 rounded-3 mb-4 align-items-end">
+            <div class="col-md-5">
+              <label class="form-label small fw-semibold text-secondary">Seleccione Producto</label>
+              <select class="form-select border-0 bg-white" [(ngModel)]="idProductoSeleccionado">
+                <option value="" disabled selected>-- Buscar producto --</option>
+                <option *ngFor="let prod of productosCatalogo" [value]="prod | json">
+                  {{ prod.nombre }} ({{ prod.unidadMedida }})
+                </option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label small fw-semibold text-secondary">Cantidad</label>
+              <input type="number" class="form-control border-0 bg-white" min="1" [(ngModel)]="cantidadIngresada">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold text-secondary">Obs. Específica (Opcional)</label>
+              <input type="text" class="form-control border-0 bg-white" placeholder="Ej: Color azul" [(ngModel)]="observacionIndividual">
+            </div>
+            <div class="col-md-2">
+              <button type="button" class="btn btn-success w-100 shadow-sm" (click)="agregarProductoALista()">
+                <i class="bi bi-plus-lg"></i> Añadir
+              </button>
+            </div>
+          </div>
+
+          <h6 class="fw-bold text-secondary mb-3">Lista de Elementos Solicitados</h6>
+          <div class="table-responsive border rounded-3 mb-4">
+            <table class="table align-middle mb-0">
+              <thead class="table-light fs-7 text-muted">
+                <tr>
+                  <th class="ps-3">Ítem / Producto</th>
+                  <th>U. Medida</th>
+                  <th style="width: 120px;">Cantidad</th>
+                  <th>Observación Específica</th>
+                  <th class="text-end pe-3">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of detallesPedido; let i = index">
+                  <td class="ps-3 fw-semibold text-dark">{{ item.nombreProducto }}</td>
+                  <td><span class="badge bg-secondary-subtle text-secondary px-2 py-1 fs-8">{{ item.unidadMedida }}</span></td>
+                  <td>
+                    <input type="number" class="form-control form-control-sm border-0 bg-light text-center" 
+                           min="1" [(ngModel)]="item.cantidad">
+                  </td>
+                  <td>
+                    <input type="text" class="form-control form-control-sm border-0 bg-light" 
+                           placeholder="Sin observación" [(ngModel)]="item.observacionEspecifica">
+                  </td>
+                  <td class="text-end pe-3">
+                    <button class="btn btn-sm btn-link text-danger p-0 border-0" (click)="eliminarProductoDeLista(i)">
+                      <i class="bi bi-trash-fill fs-6"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="detallesPedido.length === 0">
+                  <td colspan="5" class="text-center py-4 text-muted small italic">
+                    No has añadido ningún producto a la lista todavía.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-light rounded-pill px-4" (click)="cambiarVista('historial')">
+              Cancelar
+            </button>
+            <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm" (click)="guardarPedidoCompleto()">
+              <i class="bi bi-send me-1"></i> Registrar Pedido
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

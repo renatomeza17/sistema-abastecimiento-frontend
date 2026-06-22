@@ -77,12 +77,12 @@ export class Sidebar implements OnInit {
         
       ],
     },
-
+    
     PEDIDOS: {
       label: 'Pedidos Dependencia',
       icon: 'bi-bag',
       children: [
-        { label: 'Nuevo Pedido', url: '/pedidos/nuevo' },
+        { label: 'Ver Pedido', url: '/dependencia/registro-pedido' },
         { label: 'Lista de Pedidos', url: '/pedidos/lista' },
         { label: 'Verificar Existencia', url: '/pedidos/verificar' },
       ],
