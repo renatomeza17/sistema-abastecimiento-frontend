@@ -51,7 +51,7 @@
                 </span>
               </td>
               <td class="text-end pe-4">
-                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Ver detalles del pedido">
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Ver detalles del pedido" (click)="verDetalles(ped)">
                   <i class="bi bi-eye me-1"></i> Ver Detalles
                 </button>
               </td>
@@ -68,6 +68,78 @@
     </div>
   </div>
 
+  <div *ngIf="pedidoSeleccionado && vistaActiva === 'historial'" id="detalle-pedido" class="card border-primary shadow-sm mt-4 animate-fade-in">
+    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+      <div>
+        <h5 class="fw-bold text-primary m-0">Detalles del Pedido</h5>
+        <p class="text-muted small m-0">
+          <i class="bi bi-hash"></i> {{ pedidoSeleccionado.codigo }}
+        </p>
+      </div>
+      <button type="button" class="btn-close" aria-label="Close" (click)="cerrarDetalles()"></button>
+    </div>
+
+    <div class="card-body px-4">
+      <div class="row g-3 mb-4 bg-light p-3 rounded-3">
+        <div class="col-md-4">
+          <span class="text-muted d-block small fw-semibold">Solicitante</span>
+          <span class="text-dark fw-medium">{{ pedidoSeleccionado.nombreSolicitante || 'No registrado' }}</span>
+        </div>
+        <div class="col-md-4">
+          <span class="text-muted d-block small fw-semibold">Fecha de Creación</span>
+          <span class="text-dark fw-medium">{{ pedidoSeleccionado.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <div class="col-md-4">
+          <span class="text-muted d-block small fw-semibold">Estado Actual</span>
+          <span class="badge rounded-pill px-3 py-2 fs-8 mt-1"
+                [ngClass]="{
+                  'bg-warning-subtle text-warning': pedidoSeleccionado.estado === 'PENDIENTE',
+                  'bg-success-subtle text-success': pedidoSeleccionado.estado === 'FINALIZADO',
+                  'bg-danger-subtle text-danger': pedidoSeleccionado.estado === 'CANCELADO'
+                }">
+            {{ pedidoSeleccionado.estado }}
+          </span>
+        </div>
+        <div class="col-12 mt-3">
+          <span class="text-muted d-block small fw-semibold">Descripción / Justificación</span>
+          <span class="text-dark">{{ pedidoSeleccionado.descripcion }}</span>
+        </div>
+      </div>
+
+      <h6 class="fw-bold text-secondary mb-3">
+        <i class="bi bi-box-seam me-2"></i>Artículos Solicitados
+      </h6>
+      
+      <div class="table-responsive border rounded-3 mb-2">
+        <table class="table align-middle mb-0 table-hover">
+          <thead class="table-light fs-7 text-muted">
+            <tr>
+              <th class="ps-3 text-center" style="width: 50px;">#</th>
+              <th>Producto</th>
+              <th>U. Medida</th>
+              <th class="text-center">Cantidad</th>
+              <th>Observación Específica</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of pedidoSeleccionado.detalles; let i = index">
+              <td class="ps-3 text-center text-muted fw-semibold">{{ i + 1 }}</td>
+              <td class="fw-semibold text-dark">{{ item.nombreProducto }}</td>
+              <td><span class="badge bg-secondary-subtle text-secondary px-2 py-1 fs-8">{{ item.unidadMedida }}</span></td>
+              <td class="text-center fw-bold">{{ item.cantidad }}</td>
+              <td class="text-muted small">{{ item.observacionEspecifica || '—' }}</td>
+            </tr>
+            <tr *ngIf="!pedidoSeleccionado.detalles || pedidoSeleccionado.detalles.length === 0">
+              <td colspan="5" class="text-center py-4 text-muted small">
+                No hay artículos detallados para este pedido.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
   <div *ngIf="vistaActiva === 'nuevo'" class="row g-4 animate-fade-in">
     
     <div class="col-lg-4">

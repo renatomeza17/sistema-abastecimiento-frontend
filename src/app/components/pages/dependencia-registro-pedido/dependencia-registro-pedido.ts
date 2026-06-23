@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { PedidoService } from '../../../services/pedido.service';
+import { ProductoService } from '../../../services/producto.service';
 import { PedidoResponseDTO } from '../../../api/response/pedido-responseDTO';
 import { PedidoRequestDTO, PedidoDetalleRequestDTO } from '../../../api/request/pedido-requestDTO';
-import { ItemFilaPedido, CatalogProducto } from '../../../models/registro_pedido/pedido';
+import { ItemFilaPedido} from '../../../models/registro_pedido/pedido';
+import { productoResponseDTO } from '../../../api/response/productoResponseDTO';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -22,7 +24,7 @@ export class DependenciaRegistroPedidoComponent implements OnInit {
 
   // Colecciones fuertemente tipadas
   pedidosHistorial: PedidoResponseDTO[] = [];
-  productosCatalogo: CatalogProducto[] = [];
+  productosCatalogo: productoResponseDTO[] = [];
   detallesPedido: ItemFilaPedido[] = [];
 
   // Modelos bindeados al formulario
@@ -30,8 +32,10 @@ export class DependenciaRegistroPedidoComponent implements OnInit {
   idProductoSeleccionado: string = '';
   cantidadIngresada: number = 1;
   observacionIndividual: string = '';
+    // ... (debajo de tus variables existentes)
+  pedidoSeleccionado: PedidoResponseDTO | undefined;
 
-  constructor(private pedidoService: PedidoService) { }
+  constructor(private pedidoService: PedidoService, private productoService: ProductoService) { }
 
   ngOnInit(): void {
     this.cargarHistorial();
@@ -40,6 +44,7 @@ export class DependenciaRegistroPedidoComponent implements OnInit {
 
   cambiarVista(vista: 'historial' | 'nuevo'): void {
     this.vistaActiva = vista;
+    this.pedidoSeleccionado = undefined; // 👈 Agrega esta línea para limpiar la selección
     if (vista === 'historial') {
       this.cargarHistorial();
       this.limpiarFormulario();
@@ -54,7 +59,7 @@ export class DependenciaRegistroPedidoComponent implements OnInit {
   }
 
   cargarProductosCatalogo(): void {
-    this.pedidoService.obtenerCatalogoProductos().subscribe({
+    this.productoService.obtenerCatalogoProductos().subscribe({
       next: (data) => this.productosCatalogo = data,
       error: (err) => console.error('Error al recuperar catálogo de productos', err)
     });
@@ -66,7 +71,7 @@ export class DependenciaRegistroPedidoComponent implements OnInit {
       return;
     }
 
-    const productoJson: CatalogProducto = JSON.parse(this.idProductoSeleccionado);
+    const productoJson: productoResponseDTO = JSON.parse(this.idProductoSeleccionado);
     
     const yaExiste = this.detallesPedido.some(item => item.idProducto === productoJson.idProducto);
     if (yaExiste) {
@@ -123,6 +128,25 @@ export class DependenciaRegistroPedidoComponent implements OnInit {
     });
   }
 
+
+  // ... (agrega estos métodos donde prefieras, por ejemplo debajo de cargarHistorial)
+  
+  verDetalles(pedido: PedidoResponseDTO): void {
+    this.pedidoSeleccionado = pedido;
+    
+    // Pequeño retardo para que Angular renderice el HTML antes de hacer el scroll
+    setTimeout(() => {
+      const detalleEl = document.getElementById('detalle-pedido');
+      if (detalleEl) {
+        detalleEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  }
+
+  cerrarDetalles(): void {
+    this.pedidoSeleccionado = undefined;
+  }
+  
   limpiarFormulario(): void {
     this.descripcionGeneral = '';
     this.detallesPedido = [];
