@@ -3,15 +3,17 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PedidoRequestDTO } from '../api/request/pedido-requestDTO';
 import { PedidoResponseDTO } from '../api/response/pedido-responseDTO';
+import { environment } from '../environment/environment';
+// Importación interna auxiliar de la estructura compartida
+import { CatalogProducto } from '../models/registro_pedido/pedido';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PedidoService {
-  
-  private readonly apiUrl = 'http://localhost:8080/api/pedidos';
+  private apiUrl = `${environment.apiUrl}/api/pedidos`;
   // Ajusta la URL de productos según tu controlador real
-  private readonly prodUrl = 'http://localhost:8080/api/productos'; 
+  private prodUrl = `${environment.apiUrl}/api/productos`;
 
   constructor(private http: HttpClient) { }
 
@@ -38,5 +40,3 @@ export class PedidoService {
   }
 }
 
-// Importación interna auxiliar de la estructura compartida
-import { CatalogProducto } from '../models/registro_pedido/pedido';
