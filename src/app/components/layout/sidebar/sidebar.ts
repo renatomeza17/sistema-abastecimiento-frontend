@@ -83,8 +83,6 @@ export class Sidebar implements OnInit {
       icon: 'bi-bag',
       children: [
         { label: 'Ver Pedido', url: '/dependencia/registro-pedido' },
-        { label: 'Lista de Pedidos', url: '/pedidos/lista' },
-        { label: 'Verificar Existencia', url: '/pedidos/verificar' },
       ],
     },
 
