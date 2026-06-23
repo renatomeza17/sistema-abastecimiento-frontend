@@ -1,472 +1,287 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { DependenciaRegistroPedidoComponent } from './dependencia-registro-pedido';
 import { PedidoService } from '../../../services/pedido.service';
 import { ProductoService } from '../../../services/producto.service';
 import { of, throwError } from 'rxjs';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PedidoResponseDTO } from '../../../api/response/pedido-responseDTO';
 import { productoResponseDTO } from '../../../api/response/productoResponseDTO';
-import { ItemFilaPedido } from '../../../models/registro_pedido/pedido';
 
 describe('DependenciaRegistroPedidoComponent', () => {
   let component: DependenciaRegistroPedidoComponent;
   let fixture: ComponentFixture<DependenciaRegistroPedidoComponent>;
-  let mockPedidoService: any;
-  let mockProductoService: any;
-
-  const mockProductos: productoResponseDTO[] = [
-    { idProducto: 1, nombre: 'Papel A4', unidadMedida: 'Resma', codigo: 'PAPEL-001', descripcion: 'Papel blanco 80gr', activo: true },
-    { idProducto: 2, nombre: 'Bolígrafos Azules', unidadMedida: 'Caja', codigo: 'BOL-002', descripcion: 'Bolígrafos azul punto fino', activo: true },
-    { idProducto: 3, nombre: 'Tinta de Impresora', unidadMedida: 'Cartridges', codigo: 'TINTA-003', descripcion: 'Cartridges originales', activo: true }
-  ];
-
-  const mockPedidos: PedidoResponseDTO[] = [
+  
+  // Mocks de datos de ejemplo
+  const mockHistorial: PedidoResponseDTO[] = [
     {
       idPedido: 1,
-      codigo: 'PED-2026-ABC12',
-      descripcion: 'Materiales de oficina',
+      codigo: 'PED-001',
+      descripcion: 'Útiles de oficina mensuales',
       estado: 'PENDIENTE',
-      fechaCreacion: '2026-06-20',
-      nombreSolicitante: 'Juan Pérez',
-      detalles: []
-    },
-    {
-      idPedido: 2,
-      codigo: 'PED-2026-DEF34',
-      descripcion: 'Suministros para impresión',
-      estado: 'FINALIZADO',
-      fechaCreacion: '2026-06-15',
-      nombreSolicitante: 'Juan Pérez',
-      detalles: []
+      fechaCreacion: '2026-06-23T10:00:00Z',
+      nombreSolicitante: 'Mitchell Sihuincha',
+      detalles: [
+        { idDetallePedido: 10, idProducto: 101, nombreProducto: 'Lapicero Azul', unidadMedida: 'UNIDAD', cantidad: 5 }
+      ]
     }
   ];
 
-  beforeEach(async () => {
-    mockPedidoService = {
-      crearPedido: vi.fn().mockReturnValue(of({})),
-      listarMisPedidos: vi.fn().mockReturnValue(of(mockPedidos))
-    };
+  const mockProductos: productoResponseDTO[] = [
+    { idProducto: 101, codigo: 'PROD-A', nombre: 'Lapicero Azul', descripcion: 'Tinta gel', unidadMedida: 'UNIDAD', activo: true },
+    { idProducto: 102, codigo: 'PROD-B', nombre: 'Cuaderno A4', descripcion: 'Cuadriculado', unidadMedida: 'UNIDAD', activo: true }
+  ];
 
-    mockProductoService = {
-      obtenerCatalogoProductos: vi.fn().mockReturnValue(of(mockProductos))
-    };
+  // Definición de Spies/Mocks para los servicios
+  const pedidoServiceMock = {
+    listarMisPedidos: vi.fn(() => of(mockHistorial)),
+    crearPedido: vi.fn(() => of(mockHistorial[0]))
+  };
+
+  const productoServiceMock = {
+    obtenerCatalogoProductos: vi.fn(() => of(mockProductos))
+  };
+
+  beforeEach(async () => {
+    // Espías globales de ventanas nativas del navegador
+    vi.spyOn(window, 'alert').mockImplementation(() => {});
 
     await TestBed.configureTestingModule({
-      imports: [DependenciaRegistroPedidoComponent],
+      imports: [
+        ReactiveFormsModule,
+        FormsModule,
+        DependenciaRegistroPedidoComponent // Al ser standalone se importa aquí
+      ],
       providers: [
-        { provide: PedidoService, useValue: mockPedidoService },
-        { provide: ProductoService, useValue: mockProductoService }
+        { provide: PedidoService, useValue: pedidoServiceMock },
+        { provide: ProductoService, useValue: productoServiceMock }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(DependenciaRegistroPedidoComponent);
     component = fixture.componentInstance;
+    fixture.detectChanges();
   });
 
-  // ============================================================
-  // TESTS DE INICIALIZACIÓN Y CARGA DE DATOS
-  // ============================================================
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
 
-  describe('Inicialización del Componente', () => {
-    it('should create', () => {
+  // --- Pruebas de Inicialización ---
+  describe('Inicialización', () => {
+    it('debería crear el componente e inicializar datos maestros', () => {
       expect(component).toBeTruthy();
-    });
-
-    it('should initialize with historial view', () => {
       expect(component.vistaActiva).toBe('historial');
+      expect(component.pedidosHistorial).toEqual(mockHistorial);
+      expect(component.productosCatalogo).toEqual(mockProductos);
     });
 
-    it('should load historial and productos on ngOnInit', () => {
-      fixture.detectChanges();
-      expect(mockPedidoService.listarMisPedidos).toHaveBeenCalled();
-      expect(mockProductoService.obtenerCatalogoProductos).toHaveBeenCalled();
-      expect(component.pedidosHistorial.length).toBe(2);
-      expect(component.productosCatalogo.length).toBe(3);
-    });
-
-    it('should initialize detallesPedido as empty array', () => {
-      expect(component.detallesPedido).toEqual([]);
-      expect(Array.isArray(component.detallesPedido)).toBeTruthy();
-    });
-
-    it('should initialize form fields with empty/default values', () => {
-      expect(component.descripcionGeneral).toBe('');
-      expect(component.idProductoSeleccionado).toBe('');
-      expect(component.cantidadIngresada).toBe(1);
-      expect(component.observacionIndividual).toBe('');
+    it('debería inicializar los formularios reactivos vacíos y con valores por defecto', () => {
+      expect(component.pedidoForm).toBeDefined();
+      expect(component.articuloForm).toBeDefined();
+      expect(component.articuloForm.get('cantidadIngresada')?.value).toBe(1);
     });
   });
 
-  // ============================================================
-  // TESTS DE CAMBIO DE VISTA
-  // ============================================================
-
-  describe('Cambio de Vista', () => {
-    beforeEach(() => {
-      fixture.detectChanges();
-    });
-
-    it('should switch to nuevo view', () => {
+  // --- Pruebas de Navegación y Flujo de Pantallas ---
+  describe('Manejo de Vistas', () => {
+    it('debería cambiar de vista, limpiar formularios y recargar el historial', () => {
       component.cambiarVista('nuevo');
       expect(component.vistaActiva).toBe('nuevo');
-    });
-
-    it('should clear pedidoSeleccionado when switching view', () => {
-      component.pedidoSeleccionado = mockPedidos[0];
-      component.cambiarVista('nuevo');
       expect(component.pedidoSeleccionado).toBeUndefined();
-    });
 
-    it('should reload historial and clean form when switching to historial', () => {
-      component.descripcionGeneral = 'Test description';
-      component.cantidadIngresada = 5;
-      component.detallesPedido = [{ idProducto: 1, nombreProducto: 'Test', unidadMedida: 'u', cantidad: 5, observacionEspecifica: 'Test' }];
-
+      // Forzar ensuciar el formulario
+      component.pedidoForm.patchValue({ descripcionGeneral: 'Texto de prueba para justificar' });
+      
       component.cambiarVista('historial');
-
       expect(component.vistaActiva).toBe('historial');
-      expect(mockPedidoService.listarMisPedidos).toHaveBeenCalledTimes(2); // Una en ngOnInit, otra en cambiarVista
-      expect(component.descripcionGeneral).toBe('');
-      expect(component.cantidadIngresada).toBe(1);
-      expect(component.detallesPedido).toEqual([]);
-    });
-  });
-
-  // ============================================================
-  // TESTS DE AGREGAR PRODUCTO A LA LISTA
-  // ============================================================
-
-  describe('Agregar Producto a Lista', () => {
-    beforeEach(() => {
-      fixture.detectChanges();
+      expect(component.pedidoForm.get('descripcionGeneral')?.value).toBeNull(); // Reseteado
+      expect(pedidoServiceMock.listarMisPedidos).toHaveBeenCalledTimes(2); // init + cambiarVista
     });
 
-    it('should add product to detallesPedido with valid data', () => {
-      component.idProductoSeleccionado = JSON.stringify(mockProductos[0]);
-      component.cantidadIngresada = 5;
-      component.observacionIndividual = 'Calidad premium';
+    it('debería abrir y cerrar la sección de detalles de un pedido', () => {
+      vi.useFakeTimers();
 
-      component.agregarProductoALista();
+      const pedidoMock = mockHistorial[0];
+      
+      // 1. Creamos el elemento dummy
+      const dummyElement = document.createElement('div');
+      
+      // 2. Le asignamos explícitamente una función para que EXISTA en el entorno de pruebas
+      dummyElement.scrollIntoView = () => {}; 
+      
+      // 3. Ahora sí podemos espiarla sin problemas
+      const scrollSpy = vi.spyOn(dummyElement, 'scrollIntoView');
+      
+      // Forzamos a getElementById a devolver nuestro elemento preparado
+      vi.spyOn(document, 'getElementById').mockReturnValue(dummyElement);
 
-      expect(component.detallesPedido.length).toBe(1);
-      expect(component.detallesPedido[0].idProducto).toBe(1);
-      expect(component.detallesPedido[0].nombreProducto).toBe('Papel A4');
-      expect(component.detallesPedido[0].cantidad).toBe(5);
-      expect(component.detallesPedido[0].observacionEspecifica).toBe('Calidad premium');
-    });
+      // Ejecutamos el método del componente
+      component.verDetalles(pedidoMock);
+      expect(component.pedidoSeleccionado).toEqual(pedidoMock);
 
-    it('should reject product when no product selected', () => {
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-      component.idProductoSeleccionado = '';
-      component.cantidadIngresada = 5;
+      // Avanzamos el tiempo para que se ejecute el setTimeout(..., 100)
+      vi.advanceTimersByTime(100);
 
-      component.agregarProductoALista();
+      // Verificamos que se haya llamado
+      expect(scrollSpy).toHaveBeenCalled();
 
-      expect(component.detallesPedido.length).toBe(0);
-      expect(alertSpy).toHaveBeenCalledWith('Debe seleccionar un producto válido y asignar una cantidad mayor a cero.');
-      alertSpy.mockRestore();
-    });
-
-    it('should reject product when quantity is zero', () => {
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-      component.idProductoSeleccionado = JSON.stringify(mockProductos[0]);
-      component.cantidadIngresada = 0;
-
-      component.agregarProductoALista();
-
-      expect(component.detallesPedido.length).toBe(0);
-      expect(alertSpy).toHaveBeenCalledWith('Debe seleccionar un producto válido y asignar una cantidad mayor a cero.');
-      alertSpy.mockRestore();
-    });
-
-    it('should reject product when quantity is negative', () => {
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-      component.idProductoSeleccionado = JSON.stringify(mockProductos[0]);
-      component.cantidadIngresada = -5;
-
-      component.agregarProductoALista();
-
-      expect(component.detallesPedido.length).toBe(0);
-      expect(alertSpy).toHaveBeenCalled();
-      alertSpy.mockRestore();
-    });
-
-    it('should prevent adding duplicate products', () => {
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-      component.idProductoSeleccionado = JSON.stringify(mockProductos[0]);
-      component.cantidadIngresada = 3;
-
-      component.agregarProductoALista();
-      expect(component.detallesPedido.length).toBe(1);
-
-      component.cantidadIngresada = 5;
-      component.agregarProductoALista();
-
-      expect(component.detallesPedido.length).toBe(1); // No debe agregar el duplicado
-      expect(alertSpy).toHaveBeenCalledWith('Este artículo ya ha sido añadido a la lista actual.');
-      alertSpy.mockRestore();
-    });
-
-    it('should clear form fields after adding product', () => {
-      component.idProductoSeleccionado = JSON.stringify(mockProductos[0]);
-      component.cantidadIngresada = 3;
-      component.observacionIndividual = 'Especial';
-
-      component.agregarProductoALista();
-
-      expect(component.idProductoSeleccionado).toBe('');
-      expect(component.cantidadIngresada).toBe(1);
-      expect(component.observacionIndividual).toBe('');
-    });
-
-    it('should add multiple different products', () => {
-      component.idProductoSeleccionado = JSON.stringify(mockProductos[0]);
-      component.cantidadIngresada = 2;
-      component.agregarProductoALista();
-
-      component.idProductoSeleccionado = JSON.stringify(mockProductos[1]);
-      component.cantidadIngresada = 3;
-      component.agregarProductoALista();
-
-      expect(component.detallesPedido.length).toBe(2);
-      expect(component.detallesPedido[0].idProducto).toBe(1);
-      expect(component.detallesPedido[1].idProducto).toBe(2);
-    });
-  });
-
-  // ============================================================
-  // TESTS DE ELIMINAR PRODUCTO DE LA LISTA
-  // ============================================================
-
-  describe('Eliminar Producto de Lista', () => {
-    beforeEach(() => {
-      fixture.detectChanges();
-      // Agregar tres productos
-      component.detallesPedido = [
-        { idProducto: 1, nombreProducto: 'Papel A4', unidadMedida: 'Resma', cantidad: 5, observacionEspecifica: '' },
-        { idProducto: 2, nombreProducto: 'Bolígrafos', unidadMedida: 'Caja', cantidad: 2, observacionEspecifica: '' },
-        { idProducto: 3, nombreProducto: 'Tinta', unidadMedida: 'Cartridges', cantidad: 1, observacionEspecifica: '' }
-      ];
-    });
-
-    it('should remove product at specified index', () => {
-      component.eliminarProductoDeLista(1);
-      expect(component.detallesPedido.length).toBe(2);
-      expect(component.detallesPedido[0].idProducto).toBe(1);
-      expect(component.detallesPedido[1].idProducto).toBe(3);
-    });
-
-    it('should remove first product', () => {
-      component.eliminarProductoDeLista(0);
-      expect(component.detallesPedido.length).toBe(2);
-      expect(component.detallesPedido[0].idProducto).toBe(2);
-    });
-
-    it('should remove last product', () => {
-      component.eliminarProductoDeLista(2);
-      expect(component.detallesPedido.length).toBe(2);
-      expect(component.detallesPedido[1].idProducto).toBe(2);
-    });
-  });
-
-  // ============================================================
-  // TESTS DE GUARDAR PEDIDO COMPLETO
-  // ============================================================
-
-  describe('Guardar Pedido Completo', () => {
-    beforeEach(() => {
-      fixture.detectChanges();
-    });
-
-    it('should reject when description is empty', () => {
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-      component.descripcionGeneral = '';
-      component.detallesPedido = [{ idProducto: 1, nombreProducto: 'Test', unidadMedida: 'u', cantidad: 1, observacionEspecifica: '' }];
-
-      component.guardarPedidoCompleto();
-
-      expect(alertSpy).toHaveBeenCalledWith('La justificación o descripción del pedido es requerida.');
-      expect(mockPedidoService.crearPedido).not.toHaveBeenCalled();
-      alertSpy.mockRestore();
-    });
-
-    it('should reject when description is only whitespace', () => {
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-      component.descripcionGeneral = '   ';
-      component.detallesPedido = [{ idProducto: 1, nombreProducto: 'Test', unidadMedida: 'u', cantidad: 1, observacionEspecifica: '' }];
-
-      component.guardarPedidoCompleto();
-
-      expect(alertSpy).toHaveBeenCalledWith('La justificación o descripción del pedido es requerida.');
-      alertSpy.mockRestore();
-    });
-
-    it('should reject when detallesPedido is empty', () => {
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-      component.descripcionGeneral = 'Necesito materiales';
-      component.detallesPedido = [];
-
-      component.guardarPedidoCompleto();
-
-      expect(alertSpy).toHaveBeenCalledWith('La solicitud debe contener al menos un artículo.');
-      expect(mockPedidoService.crearPedido).not.toHaveBeenCalled();
-      alertSpy.mockRestore();
-    });
-
-    it('should create pedido with valid data', () => {
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-      const mockResponse: PedidoResponseDTO = {
-        idPedido: 1,
-        codigo: 'PED-2026-ABC12',
-        descripcion: 'Materiales',
-        estado: 'PENDIENTE',
-        fechaCreacion: '2026-06-23',
-        nombreSolicitante: 'Test User',
-        detalles: []
-      };
-      mockPedidoService.crearPedido.mockReturnValue(of(mockResponse));
-
-      component.descripcionGeneral = 'Materiales de oficina';
-      component.detallesPedido = [
-        { idProducto: 1, nombreProducto: 'Papel', unidadMedida: 'Resma', cantidad: 5, observacionEspecifica: 'Blanco' }
-      ];
-
-      component.guardarPedidoCompleto();
-
-      expect(mockPedidoService.crearPedido).toHaveBeenCalled();
-      expect(alertSpy).toHaveBeenCalledWith('Pedido enviado a procesamiento de abastecimiento correctamente.');
-      alertSpy.mockRestore();
-    });
-
-    it('should switch to historial view after successful creation', async () => {
-      const mockResponse: PedidoResponseDTO = mockPedidos[0];
-      mockPedidoService.crearPedido.mockReturnValue(of(mockResponse));
-
-      component.descripcionGeneral = 'Test';
-      component.detallesPedido = [{ idProducto: 1, nombreProducto: 'Test', unidadMedida: 'u', cantidad: 1, observacionEspecifica: '' }];
-      component.vistaActiva = 'nuevo';
-
-      component.guardarPedidoCompleto();
-
-      await new Promise<void>((resolve) => setTimeout(() => {
-        expect(component.vistaActiva).toBe('historial');
-        resolve();
-      }, 50));
-    });
-
-    it('should handle server error gracefully', () => {
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-      const errorResponse = new Error('Server error');
-      mockPedidoService.crearPedido.mockReturnValue(throwError(() => errorResponse));
-
-      component.descripcionGeneral = 'Test';
-      component.detallesPedido = [{ idProducto: 1, nombreProducto: 'Test', unidadMedida: 'u', cantidad: 1, observacionEspecifica: '' }];
-
-      component.guardarPedidoCompleto();
-
-      expect(alertSpy).toHaveBeenCalledWith('No se pudo registrar el pedido en el servidor.');
-      alertSpy.mockRestore();
-    });
-
-    it('should map detallesPedido correctly to DTO', () => {
-      const mockResponse: PedidoResponseDTO = mockPedidos[0];
-      mockPedidoService.crearPedido.mockReturnValue(of(mockResponse));
-
-      component.descripcionGeneral = 'Test description';
-      component.detallesPedido = [
-        { idProducto: 1, nombreProducto: 'Papel', unidadMedida: 'Resma', cantidad: 5, observacionEspecifica: 'Blanco 80gr' },
-        { idProducto: 2, nombreProducto: 'Bolígrafos', unidadMedida: 'Caja', cantidad: 2, observacionEspecifica: '' }
-      ];
-
-      component.guardarPedidoCompleto();
-
-      const calls = mockPedidoService.crearPedido.mock.calls;
-      const callArgument = calls[calls.length - 1][0];
-      expect(callArgument.descripcion).toBe('Test description');
-      expect(callArgument.detalles.length).toBe(2);
-      expect(callArgument.detalles[0].idProducto).toBe(1);
-      expect(callArgument.detalles[0].cantidad).toBe(5);
-      expect(callArgument.detalles[0].observacionEspecifica).toBe('Blanco 80gr');
-      expect(callArgument.detalles[1].observacionEspecifica).toBeUndefined();
-    });
-  });
-
-  // ============================================================
-  // TESTS DE VER DETALLES
-  // ============================================================
-
-  describe('Ver Detalles de Pedido', () => {
-    beforeEach(() => {
-      fixture.detectChanges();
-    });
-
-    it('should set pedidoSeleccionado when viewing details', async () => {
-      component.verDetalles(mockPedidos[0]);
-
-      await new Promise<void>((resolve) => setTimeout(() => {
-        expect(component.pedidoSeleccionado).toBe(mockPedidos[0]);
-        resolve();
-      }, 150));
-    });
-
-    it('should clear pedidoSeleccionado when closing details', () => {
-      component.pedidoSeleccionado = mockPedidos[0];
+      // Probamos que limpie el estado al cerrar
       component.cerrarDetalles();
       expect(component.pedidoSeleccionado).toBeUndefined();
+
+      vi.useRealTimers();
     });
   });
 
-  // ============================================================
-  // TESTS DE LIMPIAR FORMULARIO
-  // ============================================================
+  // --- Pruebas de Validaciones en Formularios ---
+  describe('Validación de Formularios', () => {
+    it('debería invalidar la descripción general si tiene menos de 10 caracteres o está vacía', () => {
+      const control = component.pedidoForm.get('descripcionGeneral');
 
-  describe('Limpiar Formulario', () => {
-    beforeEach(() => {
-      fixture.detectChanges();
+      control?.setValue('');
+      expect(control?.valid).toBeFalsy();
+
+      control?.setValue('   '); // Espacios en blanco
+      expect(control?.valid).toBeFalsy();
+
+      control?.setValue('Corto'); // Menos de 10 chars
+      expect(control?.valid).toBeFalsy();
+
+      control?.setValue('Esta es una justificación válida de más de 10 caracteres.');
+      expect(control?.valid).toBeTruthy();
     });
 
-    it('should clear all form fields', () => {
-      component.descripcionGeneral = 'Test';
-      component.detallesPedido = [{ idProducto: 1, nombreProducto: 'Test', unidadMedida: 'u', cantidad: 5, observacionEspecifica: 'Obs' }];
-      component.idProductoSeleccionado = JSON.stringify(mockProductos[0]);
-      component.cantidadIngresada = 10;
-      component.observacionIndividual = 'Observación';
+    it('debería validar rangos del formulario de artículos', () => {
+      const cantidadCtrl = component.articuloForm.get('cantidadIngresada');
+      
+      cantidadCtrl?.setValue(0); // Mínimo es 1
+      expect(cantidadCtrl?.valid).toBeFalsy();
 
-      component.limpiarFormulario();
-
-      expect(component.descripcionGeneral).toBe('');
-      expect(component.detallesPedido).toEqual([]);
-      expect(component.idProductoSeleccionado).toBe('');
-      expect(component.cantidadIngresada).toBe(1);
-      expect(component.observacionIndividual).toBe('');
+      cantidadCtrl?.setValue(10);
+      expect(cantidadCtrl?.valid).toBeTruthy();
     });
   });
 
-  // ============================================================
-  // TESTS DE MANEJO DE ERRORES
-  // ============================================================
-
-  describe('Manejo de Errores en Carga de Datos', () => {
-    it('should handle error when loading historial', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      mockPedidoService.listarMisPedidos.mockReturnValue(throwError(() => new Error('API error')));
-
-      component.cargarHistorial();
-
-      expect(consoleSpy).toHaveBeenCalledWith('Error al recuperar historial de pedidos', expect.any(Error));
-      expect(component.pedidosHistorial.length).toBe(0);
-      consoleSpy.mockRestore();
+  // --- Pruebas de Lógica de la Lista de Artículos ---
+  describe('Gestión de Lista Temporal de Artículos', () => {
+    it('no debería agregar un producto si el formulario de artículos es inválido', () => {
+      component.articuloForm.patchValue({ idProductoSeleccionado: '', cantidadIngresada: 0 });
+      component.agregarProductoALista();
+      expect(component.detallesPedido.length).toBe(0);
     });
 
-    it('should handle error when loading productos', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      mockProductoService.obtenerCatalogoProductos.mockReturnValue(throwError(() => new Error('API error')));
+    it('debería agregar un artículo exitosamente a la lista y limpiar el subformulario', () => {
+      const prodSeleccionado = mockProductos[0];
+      component.articuloForm.patchValue({
+        idProductoSeleccionado: JSON.stringify(prodSeleccionado),
+        cantidadIngresada: 3,
+        observacionIndividual: 'Urgente'
+      });
 
-      component.cargarProductosCatalogo();
+      component.agregarProductoALista();
 
-      expect(consoleSpy).toHaveBeenCalledWith('Error al recuperar catálogo de productos', expect.any(Error));
-      expect(component.productosCatalogo.length).toBe(0);
-      consoleSpy.mockRestore();
+      expect(component.detallesPedido.length).toBe(1);
+      expect(component.detallesPedido[0]).toEqual({
+        idProducto: 101,
+        nombreProducto: 'Lapicero Azul',
+        unidadMedida: 'UNIDAD',
+        cantidad: 3,
+        observacionEspecifica: 'Urgente'
+      });
+
+      // Valores reseteados por defecto
+      expect(component.articuloForm.get('idProductoSeleccionado')?.value).toBe('');
+      expect(component.articuloForm.get('cantidadIngresada')?.value).toBe(1);
+    });
+
+    it('debería rechazar productos duplicados en la lista temporal', () => {
+      const prodSeleccionado = mockProductos[0];
+      component.articuloForm.patchValue({ idProductoSeleccionado: JSON.stringify(prodSeleccionado), cantidadIngresada: 1 });
+      component.agregarProductoALista();
+
+      // Intentar agregar otra vez el mismo
+      component.articuloForm.patchValue({ idProductoSeleccionado: JSON.stringify(prodSeleccionado), cantidadIngresada: 5 });
+      component.agregarProductoALista();
+
+      expect(component.detallesPedido.length).toBe(1); // Mantiene solo 1
+      expect(component.articuloForm.get('idProductoSeleccionado')?.hasError('yaAñadido')).toBeTruthy();
+      expect(window.alert).toHaveBeenCalledWith('Este artículo ya ha sido añadido a la lista actual.');
+    });
+
+    it('debería regular la cantidad en caliente si el input recibe valores menores a 1', () => {
+      component.detallesPedido = [
+        { idProducto: 101, nombreProducto: 'Lapicero Azul', unidadMedida: 'UNIDAD', cantidad: 4, observacionEspecifica: '' }
+      ];
+
+      const dummyEvent = { target: { value: '0' } } as unknown as Event;
+      component.onCantidadInput(dummyEvent, 0);
+      expect(component.detallesPedido[0].cantidad).toBe(1);
+
+      const validEvent = { target: { value: '12' } } as unknown as Event;
+      component.onCantidadInput(validEvent, 0);
+      expect(component.detallesPedido[0].cantidad).toBe(12);
+    });
+
+    it('debería eliminar un ítem de la lista por su respectivo índice', () => {
+      component.detallesPedido = [
+        { idProducto: 101, nombreProducto: 'Lapicero Azul', unidadMedida: 'UNIDAD', cantidad: 2, observacionEspecifica: '' },
+        { idProducto: 102, nombreProducto: 'Cuaderno A4', unidadMedida: 'UNIDAD', cantidad: 5, observacionEspecifica: '' }
+      ];
+
+      component.eliminarProductoDeLista(0);
+      expect(component.detallesPedido.length).toBe(1);
+      expect(component.detallesPedido[0].idProducto).toBe(102);
+    });
+  });
+
+  // --- Pruebas de Operaciones del Backend (Guardar) ---
+  describe('Envío del Pedido Completo', () => {
+    it('no debería proceder a guardar si el formulario principal es inválido', () => {
+      component.pedidoForm.patchValue({ descripcionGeneral: '' }); // Inválido
+      component.guardarPedidoCompleto();
+      expect(pedidoServiceMock.crearPedido).not.toHaveBeenCalled();
+    });
+
+    it('no debería proceder a guardar si la lista temporal de artículos está vacía', () => {
+      component.pedidoForm.patchValue({ descripcionGeneral: 'Justificación correcta con más de diez caracteres' });
+      component.detallesPedido = []; // Vacío
+      component.guardarPedidoCompleto();
+      expect(pedidoServiceMock.crearPedido).not.toHaveBeenCalled();
+      expect(window.alert).toHaveBeenCalledWith('La solicitud debe contener al menos un artículo en la lista.');
+    });
+
+    it('debería mapear el DTO de envío y despachar la solicitud de creación con éxito', () => {
+      component.pedidoForm.patchValue({ descripcionGeneral: 'Solicitud de insumos para la oficina de sistemas' });
+      component.detallesPedido = [
+        { idProducto: 102, nombreProducto: 'Cuaderno A4', unidadMedida: 'UNIDAD', cantidad: 10, observacionEspecifica: 'Cuadriculados' }
+      ];
+
+      component.guardarPedidoCompleto();
+
+      expect(pedidoServiceMock.crearPedido).toHaveBeenCalledWith({
+        descripcion: 'Solicitud de insumos para la oficina de sistemas',
+        detalles: [
+          { idProducto: 102, cantidad: 10, observacionEspecifica: 'Cuadriculados' }
+        ]
+      });
+      expect(window.alert).toHaveBeenCalledWith('Pedido enviado a procesamiento de abastecimiento correctamente.');
+      expect(component.vistaActiva).toBe('historial');
+    });
+
+    it('debería manejar errores de respuesta del servidor de manera controlada', () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      pedidoServiceMock.crearPedido.mockReturnValueOnce(throwError(() => new Error('Error HTTP 500')));
+
+      component.pedidoForm.patchValue({ descripcionGeneral: 'Solicitud de insumos válida para pruebas' });
+      component.detallesPedido = [
+        { idProducto: 101, nombreProducto: 'Lapicero Azul', unidadMedida: 'UNIDAD', cantidad: 2, observacionEspecifica: '' }
+      ];
+
+      component.guardarPedidoCompleto();
+
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(window.alert).toHaveBeenCalledWith('No se pudo registrar el pedido en el servidor.');
     });
   });
 });
