@@ -1,19 +1,24 @@
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms'; // 👈 Agregados para Reactive Forms
+import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';  // 👈 Herramienta Tooltip de ng-bootstrap
+import { FormsModule } from '@angular/forms'; // 👈 1. Importa esto arriba
+import { CommonModule } from '@angular/common';
+
 import { PedidoService } from '../../../services/pedido.service';
 import { ProductoService } from '../../../services/producto.service';
 import { PedidoResponseDTO } from '../../../api/response/pedido-responseDTO';
 import { PedidoRequestDTO, PedidoDetalleRequestDTO } from '../../../api/request/pedido-requestDTO';
-import { ItemFilaPedido} from '../../../models/registro_pedido/pedido';
+import { ItemFilaPedido } from '../../../models/registro_pedido/pedido';
 import { productoResponseDTO } from '../../../api/response/productoResponseDTO';
-import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-dependencia-registro-pedido',
-  standalone: true, // Tu componente es standalone
+  standalone: true,
   imports: [
-    CommonModule, // 👈 Agregado aquí
-    FormsModule   // 👈 Agregado aquí
+    CommonModule,
+    ReactiveFormsModule, // 👈 Se reemplaza FormsModule por ReactiveFormsModule
+    FormsModule, // 👈 Se reemplaza FormsModule por ReactiveFormsModule
+    NgbTooltipModule     // 👈 Módulo para el toolstrip (tooltips dinámicos)
   ],
   templateUrl: './dependencia-registro-pedido.html',
   styleUrls: ['./dependencia-registro-pedido.scss']
@@ -22,29 +27,50 @@ export class DependenciaRegistroPedidoComponent implements OnInit {
 
   vistaActiva: 'historial' | 'nuevo' = 'historial';
 
-  // Colecciones fuertemente tipadas
   pedidosHistorial: PedidoResponseDTO[] = [];
   productosCatalogo: productoResponseDTO[] = [];
   detallesPedido: ItemFilaPedido[] = [];
-
-  // Modelos bindeados al formulario
-  descripcionGeneral: string = '';
-  idProductoSeleccionado: string = '';
-  cantidadIngresada: number = 1;
-  observacionIndividual: string = '';
-    // ... (debajo de tus variables existentes)
   pedidoSeleccionado: PedidoResponseDTO | undefined;
 
-  constructor(private pedidoService: PedidoService, private productoService: ProductoService) { }
+  // 1. Declaración de Grupos de Formularios Reactivos
+  pedidoForm!: FormGroup;   // Formulario de los datos generales
+  articuloForm!: FormGroup; // Formulario del bloque agregador de artículos
+
+  constructor(
+    private fb: FormBuilder,
+    private pedidoService: PedidoService, 
+    private productoService: ProductoService
+  ) { }
 
   ngOnInit(): void {
+    this.initFormularios();
     this.cargarHistorial();
     this.cargarProductosCatalogo();
   }
 
+  // 2. Inicialización del estado reactivo del formulario
+  initFormularios(): void {
+    // Regex: Mínimo 10 caracteres, no permite que sean únicamente espacios en blanco
+    const regexJustificacion = /^(?!\s*$).{10,500}$/;
+
+    this.pedidoForm = this.fb.group({
+      descripcionGeneral: ['', [Validators.required, Validators.pattern(regexJustificacion)]]
+    });
+
+    this.articuloForm = this.fb.group({
+      idProductoSeleccionado: ['', Validators.required],
+      cantidadIngresada: [1, [Validators.required, Validators.min(1)]],
+      observacionIndividual: ['', Validators.maxLength(100)]
+    });
+  }
+
+  // Getters auxiliares para simplificar el código en el HTML
+  get f() { return this.pedidoForm.controls; }
+  get a() { return this.articuloForm.controls; }
+
   cambiarVista(vista: 'historial' | 'nuevo'): void {
     this.vistaActiva = vista;
-    this.pedidoSeleccionado = undefined; // 👈 Agrega esta línea para limpiar la selección
+    this.pedidoSeleccionado = undefined;
     if (vista === 'historial') {
       this.cargarHistorial();
       this.limpiarFormulario();
@@ -65,16 +91,21 @@ export class DependenciaRegistroPedidoComponent implements OnInit {
     });
   }
 
+  // 3. Controladores y eventos del Formulario Reactivo
   agregarProductoALista(): void {
-    if (!this.idProductoSeleccionado || this.cantidadIngresada <= 0) {
-      alert('Debe seleccionar un producto válido y asignar una cantidad mayor a cero.');
+    // Marcamos como tocados para disparar validaciones visuales si está incompleto
+    if (this.articuloForm.invalid) {
+      this.articuloForm.markAllAsTouched();
       return;
     }
 
-    const productoJson: productoResponseDTO = JSON.parse(this.idProductoSeleccionado);
+    const productoJson: productoResponseDTO = JSON.parse(this.articuloForm.value.idProductoSeleccionado);
+    const cantidad = this.articuloForm.value.cantidadIngresada;
+    const observacion = this.articuloForm.value.observacionIndividual;
     
     const yaExiste = this.detallesPedido.some(item => item.idProducto === productoJson.idProducto);
     if (yaExiste) {
+      this.articuloForm.controls['idProductoSeleccionado'].setErrors({ yaAñadido: true });
       alert('Este artículo ya ha sido añadido a la lista actual.');
       return;
     }
@@ -83,13 +114,26 @@ export class DependenciaRegistroPedidoComponent implements OnInit {
       idProducto: productoJson.idProducto,
       nombreProducto: productoJson.nombre,
       unidadMedida: productoJson.unidadMedida,
-      cantidad: this.cantidadIngresada,
-      observacionEspecifica: this.observacionIndividual
+      cantidad: cantidad,
+      observacionEspecifica: observacion
     });
 
-    this.idProductoSeleccionado = '';
-    this.cantidadIngresada = 1;
-    this.observacionIndividual = '';
+    // Resetear formulario de artículos preservando valores iniciales por defecto
+    this.articuloForm.reset({
+      idProductoSeleccionado: '',
+      cantidadIngresada: 1,
+      observacionIndividual: ''
+    });
+  }
+
+  // Evento Input: Filtra dinámicamente si el usuario escribe valores menores a 1 en caliente
+  onCantidadInput(event: Event, index: number): void {
+    const input = event.target as HTMLInputElement;
+    let value = parseInt(input.value, 10);
+    if (isNaN(value) || value < 1) {
+      value = 1;
+    }
+    this.detallesPedido[index].cantidad = value;
   }
 
   eliminarProductoDeLista(index: number): void {
@@ -97,18 +141,18 @@ export class DependenciaRegistroPedidoComponent implements OnInit {
   }
 
   guardarPedidoCompleto(): void {
-    if (!this.descripcionGeneral.trim()) {
-      alert('La justificación o descripción del pedido es requerida.');
-      return;
-    }
-    if (this.detallesPedido.length === 0) {
-      alert('La solicitud debe contener al menos un artículo.');
+    if (this.pedidoForm.invalid) {
+      this.pedidoForm.markAllAsTouched();
       return;
     }
 
-    // Armamos la estructura de datos exigida exactamente por el DTO Request
+    if (this.detallesPedido.length === 0) {
+      alert('La solicitud debe contener al menos un artículo en la lista.');
+      return;
+    }
+  
     const nuevoPedidoDTO: PedidoRequestDTO = {
-      descripcion: this.descripcionGeneral,
+      descripcion: this.pedidoForm.value.descripcionGeneral.trim(),
       detalles: this.detallesPedido.map((item): PedidoDetalleRequestDTO => ({
         idProducto: item.idProducto,
         cantidad: item.cantidad,
@@ -128,13 +172,8 @@ export class DependenciaRegistroPedidoComponent implements OnInit {
     });
   }
 
-
-  // ... (agrega estos métodos donde prefieras, por ejemplo debajo de cargarHistorial)
-  
   verDetalles(pedido: PedidoResponseDTO): void {
     this.pedidoSeleccionado = pedido;
-    
-    // Pequeño retardo para que Angular renderice el HTML antes de hacer el scroll
     setTimeout(() => {
       const detalleEl = document.getElementById('detalle-pedido');
       if (detalleEl) {
@@ -148,10 +187,12 @@ export class DependenciaRegistroPedidoComponent implements OnInit {
   }
   
   limpiarFormulario(): void {
-    this.descripcionGeneral = '';
+    this.pedidoForm.reset();
+    this.articuloForm.reset({
+      idProductoSeleccionado: '',
+      cantidadIngresada: 1,
+      observacionIndividual: ''
+    });
     this.detallesPedido = [];
-    this.idProductoSeleccionado = '';
-    this.cantidadIngresada = 1;
-    this.observacionIndividual = '';
   }
 }

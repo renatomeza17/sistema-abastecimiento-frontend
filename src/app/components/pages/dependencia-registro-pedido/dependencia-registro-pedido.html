@@ -140,112 +140,163 @@
     </div>
   </div>
   
-  <div *ngIf="vistaActiva === 'nuevo'" class="row g-4 animate-fade-in">
+<div *ngIf="vistaActiva === 'nuevo'" class="row g-4 animate-fade-in">
     
-    <div class="col-lg-4">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
-          <h5 class="fw-bold text-dark m-0">Datos del Pedido</h5>
+  <div class="col-lg-4" [formGroup]="pedidoForm">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+        <h5 class="fw-bold text-dark m-0">Datos del Pedido</h5>
+      </div>
+      <div class="card-body px-4">
+        <div class="mb-3 position-relative">
+          <label class="form-label text-secondary small fw-semibold">Descripción del Pedido / Justificación</label>
+          
+          <textarea class="form-control bg-light border-0" rows="5" 
+                    formControlName="descripcionGeneral"
+                    placeholder="Ej: Solicito útiles de escritorio para el personal administrativo correspondiente al presente mes."
+                    [ngClass]="{
+                      'is-invalid': f['descripcionGeneral'].invalid && (f['descripcionGeneral'].dirty || f['descripcionGeneral'].touched),
+                      'is-valid': f['descripcionGeneral'].valid && f['descripcionGeneral'].dirty
+                    }"
+                    [ngbTooltip]="tipJustificacion"
+                    #tJustificacion="ngbTooltip"
+                    triggers="manual"
+                    (input)="f['descripcionGeneral'].invalid ? tJustificacion.open() : tJustificacion.close()"></textarea>
+          
+          <ng-template #tipJustificacion>
+            <span class="small">La justificación es requerida.</span>
+          </ng-template>
+
+          <div class="invalid-feedback">
+            Por favor, ingrese una justificación válida y detallada.
+          </div>
         </div>
-        <div class="card-body px-4">
-          <div class="mb-3">
-            <label class="form-label text-secondary small fw-semibold">Descripción del Pedido / Justificación</label>
-            <textarea class="form-control bg-light border-0" rows="5" 
-                      placeholder="Ej: Solicito útiles de escritorio para el personal administrativo correspondiente al presente mes."
-                      [(ngModel)]="descripcionGeneral"></textarea>
-          </div>
-          <div class="alert alert-info border-0 shadow-sm fs-7 mb-0">
-            <i class="bi bi-info-circle-fill me-2"></i>
-            Recuerde que el código correlativo y la fecha de creación se asignarán automáticamente al guardar.
-          </div>
+        <div class="alert alert-info border-0 shadow-sm fs-7 mb-0">
+          <i class="bi bi-info-circle-fill me-2"></i>
+          Recuerde que el código correlativo y la fecha de creación se asignarán automáticamente al guardar.
         </div>
       </div>
     </div>
-
-    <div class="col-lg-8">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
-          <h5 class="fw-bold text-dark m-0">Añadir Artículos al Pedido</h5>
-        </div>
-        
-        <div class="card-body px-4">
-          <div class="row g-3 bg-light p-3 rounded-3 mb-4 align-items-end">
-            <div class="col-md-5">
-              <label class="form-label small fw-semibold text-secondary">Seleccione Producto</label>
-              <select class="form-select border-0 bg-white" [(ngModel)]="idProductoSeleccionado">
-                <option value="" disabled selected>-- Buscar producto --</option>
-                <option *ngFor="let prod of productosCatalogo" [value]="prod | json">
-                  {{ prod.nombre }} ({{ prod.unidadMedida }})
-                </option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <label class="form-label small fw-semibold text-secondary">Cantidad</label>
-              <input type="number" class="form-control border-0 bg-white" min="1" [(ngModel)]="cantidadIngresada">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label small fw-semibold text-secondary">Obs. Específica (Opcional)</label>
-              <input type="text" class="form-control border-0 bg-white" placeholder="Ej: Color azul" [(ngModel)]="observacionIndividual">
-            </div>
-            <div class="col-md-2">
-              <button type="button" class="btn btn-success w-100 shadow-sm" (click)="agregarProductoALista()">
-                <i class="bi bi-plus-lg"></i> Añadir
-              </button>
-            </div>
-          </div>
-
-          <h6 class="fw-bold text-secondary mb-3">Lista de Elementos Solicitados</h6>
-          <div class="table-responsive border rounded-3 mb-4">
-            <table class="table align-middle mb-0">
-              <thead class="table-light fs-7 text-muted">
-                <tr>
-                  <th class="ps-3">Ítem / Producto</th>
-                  <th>U. Medida</th>
-                  <th style="width: 120px;">Cantidad</th>
-                  <th>Observación Específica</th>
-                  <th class="text-end pe-3">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let item of detallesPedido; let i = index">
-                  <td class="ps-3 fw-semibold text-dark">{{ item.nombreProducto }}</td>
-                  <td><span class="badge bg-secondary-subtle text-secondary px-2 py-1 fs-8">{{ item.unidadMedida }}</span></td>
-                  <td>
-                    <input type="number" class="form-control form-control-sm border-0 bg-light text-center" 
-                           min="1" [(ngModel)]="item.cantidad">
-                  </td>
-                  <td>
-                    <input type="text" class="form-control form-control-sm border-0 bg-light" 
-                           placeholder="Sin observación" [(ngModel)]="item.observacionEspecifica">
-                  </td>
-                  <td class="text-end pe-3">
-                    <button class="btn btn-sm btn-link text-danger p-0 border-0" (click)="eliminarProductoDeLista(i)">
-                      <i class="bi bi-trash-fill fs-6"></i>
-                    </button>
-                  </td>
-                </tr>
-                <tr *ngIf="detallesPedido.length === 0">
-                  <td colspan="5" class="text-center py-4 text-muted small italic">
-                    No has añadido ningún producto a la lista todavía.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-light rounded-pill px-4" (click)="cambiarVista('historial')">
-              Cancelar
-            </button>
-            <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm" (click)="guardarPedidoCompleto()">
-              <i class="bi bi-send me-1"></i> Registrar Pedido
-            </button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
   </div>
+
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+        <h5 class="fw-bold text-dark m-0">Añadir Artículos al Pedido</h5>
+      </div>
+      
+      <div class="card-body px-4" [formGroup]="articuloForm">
+        <div class="row g-3 bg-light p-3 rounded-3 mb-4 align-items-end">
+          
+          <div class="col-md-5">
+            <label class="form-label small fw-semibold text-secondary">Seleccione Producto</label>
+            <select class="form-select border-0 bg-white" 
+                    formControlName="idProductoSeleccionado"
+                    [ngClass]="{
+                      'is-invalid': a['idProductoSeleccionado'].invalid && a['idProductoSeleccionado'].touched,
+                      'is-valid': a['idProductoSeleccionado'].valid && a['idProductoSeleccionado'].touched
+                    }">
+              <option value="" disabled selected>-- Buscar producto --</option>
+              <option *ngFor="let prod of productosCatalogo" [value]="prod | json">
+                {{ prod.nombre }} ({{ prod.unidadMedida }})
+              </option>
+            </select>
+            <div class="invalid-feedback fw-semibold shadow-sm p-2 rounded-2 mt-2 bg-danger-subtle text-danger border border-danger-subtle small animate-fade-in">
+              <i class="bi bi-exclamation-circle-fill me-1"></i> Debe seleccionar un producto antes de añadirlo.
+            </div>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold text-secondary">Cantidad</label>
+            <input type="number" class="form-control border-0 bg-white"            
+                    min="1"
+                   formControlName="cantidadIngresada"
+                   [ngClass]="{
+                     'is-invalid': a['cantidadIngresada'].invalid && a['cantidadIngresada'].touched
+                   }">
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label small fw-semibold text-secondary">Obs. Específica (Opcional)</label>
+            <input type="text" class="form-control border-0 bg-white" 
+                   placeholder="Ej: Color azul" 
+                   formControlName="observacionIndividual"
+                   [ngClass]="{
+                     'is-invalid': a['observacionIndividual'].invalid
+                   }"
+                   [ngbTooltip]="'Máximo 100 caracteres'"
+                   triggers="hover">
+          </div>
+
+          <div class="col-md-2">
+            <button type="button" class="btn btn-success w-100 shadow-sm" (click)="agregarProductoALista()">
+              <i class="bi bi-plus-lg"></i> Añadir
+            </button>
+          </div>
+        </div>
+
+        <h6 class="fw-bold text-secondary mb-3">Lista de Elementos Solicitados</h6>
+        <div class="table-responsive border rounded-3 mb-4">
+          <table class="table align-middle mb-0">
+            <thead class="table-light fs-7 text-muted">
+              <tr>
+                <th class="ps-3">Ítem / Producto</th>
+                <th>U. Medida</th>
+                <th style="width: 120px;">Cantidad</th>
+                <th>Observación Específica</th>
+                <th class="text-end pe-3">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of detallesPedido; let i = index">
+                <td class="ps-3 fw-semibold text-dark">{{ item.nombreProducto }}</td>
+                <td><span class="badge bg-secondary-subtle text-secondary px-2 py-1 fs-8">{{ item.unidadMedida }}</span></td>
+                
+                <td>
+                  <input type="number" class="form-control form-control-sm border-0 bg-light text-center" 
+                         [value]="item.cantidad"
+                         min="1"
+                         (input)="onCantidadInput($event, i)">
+                </td>
+                
+                <td>
+                  <input type="text" class="form-control form-control-sm border-0 bg-light" 
+                         placeholder="Sin observación" 
+                         [(ngModel)]="item.observacionEspecifica"
+                         [ngModelOptions]="{standalone: true}"> </td>
+                <td class="text-end pe-3">
+                  <button class="btn btn-sm btn-link text-danger p-0 border-0" (click)="eliminarProductoDeLista(i)">
+                    <i class="bi bi-trash-fill fs-6"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="detallesPedido.length === 0">
+                <td colspan="5" class="text-center py-4 text-muted small italic">
+                  No has añadido ningún producto a la lista todavía.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-light rounded-pill px-4" (click)="cambiarVista('historial')">
+            Cancelar
+          </button>
+          <button type="button" 
+                  class="btn btn-primary rounded-pill px-4 shadow-sm" 
+                  (click)="guardarPedidoCompleto()"
+                  [disabled]="pedidoForm.invalid || detallesPedido.length === 0"
+                  [ngbTooltip]="pedidoForm.invalid || detallesPedido.length === 0 ? 'Complete la justificación y agregue ítems para habilitar' : ''"
+                  placement="top">
+            <i class="bi bi-send me-1"></i> Registrar Pedido
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
 
 </div>

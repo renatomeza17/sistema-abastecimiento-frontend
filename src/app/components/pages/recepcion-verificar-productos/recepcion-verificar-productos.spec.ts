@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RecepcionVerificarProductos } from './recepcion-verificar-productos';
+import { RecepcionVerificarProductosComponent } from './recepcion-verificar-productos';
 
-describe('RecepcionVerificarProductos', () => {
-  let component: RecepcionVerificarProductos;
-  let fixture: ComponentFixture<RecepcionVerificarProductos>;
+describe('RecepcionVerificarProductosComponent', () => {
+  let component: RecepcionVerificarProductosComponent;
+  let fixture: ComponentFixture<RecepcionVerificarProductosComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RecepcionVerificarProductos],
+      imports: [RecepcionVerificarProductosComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(RecepcionVerificarProductos);
+    fixture = TestBed.createComponent(RecepcionVerificarProductosComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
