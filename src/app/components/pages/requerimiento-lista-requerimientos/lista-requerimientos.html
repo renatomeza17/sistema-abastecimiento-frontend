@@ -91,162 +91,235 @@
     </div>
   }
 
-  <!-- ── VISTA: NUEVO REQUERIMIENTO ── -->
   @if (vistaActiva === 'nuevo') {
-    <div class="row g-4">
 
-      <!-- Columna izquierda: formulario -->
-      <div class="col-xl-5">
-        <div class="card shadow-sm">
-          <div class="card-header py-3">
-            <h5 class="mb-0 fs-6 fw-bold">Datos del Requerimiento</h5>
+  <div class="row g-4">
+    <!-- FORMULARIO -->
+    <div class="col-xl-5">
+      <div class="card shadow-sm">
+        <div class="card-header py-3">
+          <h5 class="mb-0 fs-6 fw-bold">
+            Datos del Requerimiento
+          </h5>
+        </div>
+        <div class="card-body">
+          <!-- Mensajes -->
+          @if (mensajeExito) {
+            <div class="alert alert-success py-2">
+              <i class="bi bi-check-circle me-2"></i>
+              {{ mensajeExito }}
+            </div>
+          }
+          @if (mensajeError) {
+            <div class="alert alert-danger py-2">
+              <i class="bi bi-exclamation-circle me-2"></i>
+              {{ mensajeError }}
+            </div>
+          }
+          <!-- Dependencia -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Dependencia Solicitante
+              <span class="text-danger">*</span>
+            </label>
+            <select
+              class="form-select"
+              [(ngModel)]="dependenciaSeleccionada">
+              <option value="">
+                Seleccione una dependencia
+              </option>
+              @for (dep of listaDependencias; track dep) {
+                <option [value]="dep">
+                  {{ dep }}
+                </option>
+              }
+            </select>
           </div>
-          <div class="card-body">
 
-            <!-- Feedback -->
-            @if (mensajeExito) {
-              <div class="alert alert-success py-2 small">
-                <i class="bi bi-check-circle me-1"></i> {{ mensajeExito }}
-              </div>
-            }
-            @if (mensajeError) {
-              <div class="alert alert-danger py-2 small">
-                <i class="bi bi-exclamation-circle me-1"></i> {{ mensajeError }}
-              </div>
-            }
+          <!-- Descripción -->
 
-            <!-- Descripción -->
-            <div class="mb-4">
-              <label class="form-label fw-semibold small">Descripción General <span class="text-danger">*</span></label>
-              <textarea class="form-control" [(ngModel)]="descripcionNueva" rows="3"
-                        placeholder="Ej. Adquisición de materiales de escritorio para el ciclo 2026-I...">
-              </textarea>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Descripción General
+              <span class="text-danger">*</span>
+            </label>
+            <textarea
+              class="form-control"
+              rows="4"
+              [(ngModel)]="descripcionNueva"
+              placeholder="Ej. Adquisición de materiales de escritorio para el semestre 2026-II">
+            </textarea>
+          </div>
+          <hr class="border-dashed">
+          <!-- Productos -->
+          <h6 class="fw-bold small mb-3 text-uppercase opacity-75">
+            Productos Solicitados
+          </h6>
+          <div class="row g-3 align-items-end mb-4">
+            <div class="col-md-7">
+              <label class="form-label small text-muted">
+                Producto
+              </label>
+              <select
+                class="form-select"
+                [(ngModel)]="productoSeleccionadoInput">
+                <option [ngValue]="null">
+                  Seleccione un producto
+                </option>
+                @for (producto of catalogoProductos; track producto.idProducto) {
+                  <option [ngValue]="producto">
+                    {{ producto.codigo }}
+                    -
+                    {{ producto.nombre }}
+                    ({{ producto.unidadMedida }})
+                  </option>
+                }
+              </select>
             </div>
-
-            <hr class="border-dashed">
-
-            <!-- Agregar producto -->
-            <h6 class="fw-bold small mb-3 text-uppercase opacity-75">Agregar Productos</h6>
-            <div class="row g-2 align-items-end mb-3">
-              <div class="col-4">
-                <label class="form-label small text-muted">ID Producto</label>
-                <input type="number" class="form-control form-control-sm"
-                       [(ngModel)]="idProductoInput" placeholder="Ej. 1" min="1">
-              </div>
-              <div class="col-4">
-                <label class="form-label small text-muted">Nombre (ref.)</label>
-                <input type="text" class="form-control form-control-sm"
-                       [(ngModel)]="nombreProductoInput" placeholder="Papel Bond">
-              </div>
-              <div class="col-4">
-                <label class="form-label small text-muted">Cantidad</label>
-                <div class="input-group input-group-sm">
-                  <input type="number" class="form-control"
-                         [(ngModel)]="cantidadInput" min="1" placeholder="0">
-                  <button class="btn btn-secondary" type="button"
-                          (click)="agregarProducto()">
-                    <i class="bi bi-plus"></i>
-                  </button>
-                </div>
+            <div class="col-md-5">
+              <label class="form-label small text-muted">
+                Cantidad
+              </label>
+              <div class="input-group">
+                <input
+                  type="number"
+                  class="form-control"
+                  min="1"
+                  [(ngModel)]="cantidadInput">
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  (click)="agregarProducto()">
+                  <i class="bi bi-plus-lg"></i>
+                </button>
               </div>
             </div>
+          </div>
 
-            <!-- Tabla temporal de productos -->
-            @if (productosSeleccionados.length > 0) {
-              <div class="table-responsive mb-4">
-                <table class="table table-sm table-borderless align-middle bg-light rounded">
-                  <thead>
-                    <tr class="small text-muted">
-                      <th class="ps-2">ID</th>
-                      <th>Producto</th>
-                      <th class="text-center">Cant.</th>
-                      <th></th>
+          <!-- Tabla de productos -->
+
+          @if (productosSeleccionados.length > 0) {
+            <div class="table-responsive mb-4">
+              <table class="table table-sm align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th>Unidad</th>
+                    <th class="text-center">Cantidad</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of productosSeleccionados; track item.idProducto; let i = $index) {
+                    <tr>
+                      <td>
+                        {{ item.codigo }}
+                      </td>
+                      <td>
+                        {{ item.nombre }}
+                      </td>
+                      <td>
+                        {{ item.unidadMedida }}
+                      </td>
+                      <td class="text-center fw-bold text-primary">
+                        {{ item.cantidad }}
+                      </td>
+                      <td class="text-end">
+                        <button
+                          class="btn btn-link text-danger p-0 border-0"
+                          (click)="removerProducto(i)">
+                          <i class="bi bi-trash3"></i>
+                        </button>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    @for (item of productosSeleccionados; track item.idProducto; let i = $index) {
-                      <tr>
-                        <td class="ps-2 text-muted fw-semibold">{{ item.idProducto }}</td>
-                        <td>{{ item.nombre }}</td>
-                        <td class="text-center fw-bold text-primary">{{ item.cantidad }}</td>
-                        <td class="text-end pe-2">
-                          <button class="btn btn-link text-danger p-0 border-0"
-                                  (click)="removerProducto(i)">
-                            <i class="bi bi-trash3"></i>
-                          </button>
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            }
-
-            @if (productosSeleccionados.length === 0) {
-              <div class="text-center text-muted small py-3 bg-light rounded mb-4">
-                <i class="bi bi-box d-block mb-1 opacity-50"></i>
-                Aún no hay productos agregados.
-              </div>
-            }
-
-            <!-- Botones -->
-            <div class="d-flex gap-2">
-              <button class="btn btn-outline-secondary flex-fill"
-                      (click)="vistaActiva = 'lista'">
-                Cancelar
-              </button>
-              <button class="btn btn-primary flex-fill fw-bold"
-                      (click)="guardarRequerimiento()"
-                      [disabled]="!descripcionNueva.trim() || productosSeleccionados.length === 0">
-                <i class="bi bi-send me-1"></i> Enviar Requerimiento
-              </button>
+                  }
+                </tbody>
+              </table>
             </div>
+          }
+          @if (productosSeleccionados.length === 0) {
+            <div
+              class="text-center text-muted py-4 bg-light rounded mb-4">
+              <i class="bi bi-box-seam fs-4 d-block mb-2"></i>
+              No se han agregado productos.
+            </div>
+          }
+          
+          <!-- Botones -->
 
+          <div class="d-flex gap-2">
+            <button
+              class="btn btn-outline-secondary flex-fill"
+              (click)="vistaActiva = 'lista'">
+              Cancelar
+            </button>
+            <button
+              class="btn btn-primary flex-fill fw-bold"
+              (click)="guardarRequerimiento()">
+              <i class="bi bi-send me-2"></i>
+              Enviar Requerimiento
+            </button>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Columna derecha: preview -->
-      <div class="col-xl-7">
-        <div class="card shadow-sm h-100">
-          <div class="card-header py-3">
-            <h5 class="mb-0 fs-6 fw-bold">Vista Previa del Requerimiento</h5>
-          </div>
-          <div class="card-body">
-            @if (!descripcionNueva && productosSeleccionados.length === 0) {
-              <div class="text-center text-muted py-5">
-                <i class="bi bi-file-earmark-text fs-1 d-block mb-2 opacity-20"></i>
-                <p class="small">Completa el formulario para ver la vista previa.</p>
+    <!-- VISTA PREVIA -->
+
+    <div class="col-xl-7">
+      <div class="card shadow-sm h-100">
+        <div class="card-header py-3">
+          <h5 class="mb-0 fs-6 fw-bold">
+            Vista Previa del Requerimiento
+          </h5>
+        </div>
+        <div class="card-body">
+          @if (!descripcionNueva && productosSeleccionados.length === 0) {
+            <div class="text-center text-muted py-5">
+              <i class="bi bi-file-earmark-text fs-1 d-block mb-3 opacity-25"></i>
+              Complete el formulario para visualizar el requerimiento.
+            </div>
+          }
+          @if (descripcionNueva || productosSeleccionados.length > 0) {
+            <div class="mb-3 p-3 bg-light rounded">
+              <div class="small text-muted text-uppercase fw-bold mb-2">
+                Dependencia
               </div>
-            }
-
-            @if (descripcionNueva || productosSeleccionados.length > 0) {
-              <div class="mb-3 p-3 bg-light rounded">
-                <div class="small text-muted text-uppercase fw-bold mb-1">Descripción</div>
-                <p class="mb-0">{{ descripcionNueva || '—' }}</p>
+              <p class="mb-0">
+                {{ dependenciaSeleccionada || 'Sin seleccionar' }}
+              </p>
+            </div>
+            <div class="mb-3 p-3 bg-light rounded">
+              <div class="small text-muted text-uppercase fw-bold mb-2">
+                Descripción
               </div>
-
-              @if (productosSeleccionados.length > 0) {
-                <div class="small text-muted text-uppercase fw-bold mb-2">
-                  Productos ({{ productosSeleccionados.length }})
-                </div>
-                @for (p of productosSeleccionados; track p.idProducto) {
-                  <div class="d-flex justify-content-between align-items-center
-                              border-bottom py-2 px-2 small">
-                    <span>
-                      <i class="bi bi-box-seam me-2 text-secondary"></i>
-                      {{ p.nombre }}
-                    </span>
-                    <span class="badge bg-primary rounded-pill">x{{ p.cantidad }}</span>
+              <p class="mb-0">
+                {{ descripcionNueva || 'Sin descripción' }}
+              </p>
+            </div>
+            @if (productosSeleccionados.length > 0) {
+              <div class="small text-muted text-uppercase fw-bold mb-3">
+                Productos Solicitados
+                ({{ productosSeleccionados.length }})
+              </div>
+              @for (p of productosSeleccionados; track p.idProducto) {
+                <div
+                  class="d-flex justify-content-between align-items-center border-bottom py-2">
+                  <div>
+                    <i class="bi bi-box-seam me-2"></i>
+                    {{ p.nombre }}
                   </div>
-                }
+                  <span class="badge bg-primary">
+                    x{{ p.cantidad }}
+                  </span>
+                </div>
               }
             }
-          </div>
+          }
         </div>
       </div>
-
     </div>
+  </div>
   }
-
 </div>
