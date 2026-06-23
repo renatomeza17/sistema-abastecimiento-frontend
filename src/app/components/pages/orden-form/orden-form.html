@@ -12,7 +12,7 @@
 
 
     <!-----------SECCIÓN DE DATOS ------------>
-
+  <form [formGroup]="ordenForm" >
   <div class="row g-4">
     <div class="col-lg-8">
       <div class="d-flex flex-column gap-4">
@@ -26,21 +26,33 @@
             </div>
             <div class="col-md-4">
               <label class="form-label fw-medium text-secondary small">Fecha de Entrega Estimada *</label>
-              <input type="date" class="form-control" [(ngModel)]="ordenRequest.fechaEntrega" name="fechaEntrega">
+              <input type="date" class="form-control" formControlName="fechaEntrega" [class.is-invalid]="ordenForm.get('fechaEntrega')?.invalid && ordenForm.get('fechaEntrega')?.touched" >
+              @if (ordenForm.get('fechaEntrega')?.touched) {
+                @if (ordenForm.get('fechaEntrega')?.errors?.['required']) {
+                  <div class="text-danger small mt-1">La fecha de entrega estimada es obligatoria.</div>
+                }
+                @if (ordenForm.get('fechaEntrega')?.errors?.['fechaInvalida']) {
+                  <div class="text-danger small mt-1">La fecha estimada no puede ser menor a la fecha de emisión ({{ ordenRequest.fechaEmision | date:'dd/MM/yyyy' }}).</div>
+                }
+              }
             </div>
             <div class="col-md-4">
               <label class="form-label fw-medium text-secondary small">Forma de Pago</label> 
-              <select class="form-select text-muted" [(ngModel)]="ordenRequest.formaPago" name="formaPago">
+              <select class="form-select text-muted" formControlName="formaPago" [class.is-invalid]="ordenForm.get('formaPago')?.invalid && ordenForm.get('formaPago')?.touched">
                 <option value="">Seleccione forma de pago</option>
                 <option value="Credito">Crédito (30 días)</option>
                 <option value="Contado">Contado / Transferencia Directa</option>
               </select>
+              @if (ordenForm.get('formaPago')?.invalid && ordenForm.get('formaPago')?.touched) {
+                <div class="invalid-feedback">
+                  Debe seleccionar una forma de pago para la orden.
+                </div>
+              }
             </div>
             
             <div class="col-md-6">
               <label class="form-label fw-medium text-secondary small">Requerimiento de Origen</label>
-              <select class="form-select" [(ngModel)]="ordenRequest.idRequerimiento" 
-                      name="idRequerimiento" (change)="onRequerimientoChange()">
+              <select class="form-select" formControlName="idRequerimiento" (change)="onRequerimientoChange()">
                   <option [ngValue]="null">Seleccione un requerimiento</option>
                   @for (req of requerimientosList; track req.idRequerimiento) {
                       <option [ngValue]="req.idRequerimiento">{{ req.codigo }} - {{ req.descripcion }}</option>
@@ -50,8 +62,7 @@
 
             <div class="col-md-6">
               <label class="form-label fw-medium text-secondary small">Asociar Proforma Cotizada *</label>
-                <select class="form-select" [(ngModel)]="ordenRequest.idProforma" 
-                        name="idProforma" (change)="onProformaChange()">
+                <select class="form-select" formControlName="idProforma" (change)="onProformaChange()">
                     <option [ngValue]="null">Seleccione una proforma</option>
                     @for (prof of proformaList; track prof.idProforma) {
                         <option [ngValue]="prof.idProforma">{{ prof.codigo }}</option>
@@ -159,19 +170,34 @@
             <div class="row g-3">
               <div class="col-md-6">
                 <label class="form-label fw-medium text-secondary small">Plazo de Entrega Pactado</label>
-                <input type="text" class="form-control" [(ngModel)]="ordenRequest.plazoEntrega" name="plazoEntrega">
+                <input type="text" class="form-control" formControlName="plazoEntrega" [class.is-invalid]="ordenForm.get('plazoEntrega')?.invalid && ordenForm.get('plazoEntrega')?.touched">
+                @if (ordenForm.get('plazoEntrega')?.invalid && ordenForm.get('plazoEntrega')?.touched) {
+                    <div class="invalid-feedback">
+                      El lugar de entrega es completamente obligatorio para procesar la orden.
+                    </div>
+                }   
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-medium text-secondary small">Garantía Otorgada</label>
-                <input type="text" class="form-control" [(ngModel)]="ordenRequest.garantia" name="garantia">
+                <input type="text" class="form-control" formControlName="garantia"  [class.is-invalid]="ordenForm.get('garantia')?.invalid && ordenForm.get('garantia')?.touched">
+                @if (ordenForm.get('garantia')?.invalid && ordenForm.get('garantia')?.touched) {
+                    <div class="invalid-feedback">
+                      La garantía es completamente obligatoria para procesar la orden.
+                    </div>
+                }
               </div>
               <div class="col-12">
                 <label class="form-label fw-medium text-secondary small">Lugar de Destino / Entrega *</label>
-                <input type="text" class="form-control" placeholder="Ej. Almacén Central de la Unidad de Abastecimiento - UNMSM" [(ngModel)]="ordenRequest.lugarEntrega" name="lugarEntrega">
+                <input type="text" class="form-control" placeholder="Ej. Almacén Central de la Unidad de Abastecimiento - UNMSM" formControlName="lugarEntrega" [class.is-invalid]="ordenForm.get('lugarEntrega')?.invalid && ordenForm.get('lugarEntrega')?.touched">
+                @if (ordenForm.get('lugarEntrega')?.invalid && ordenForm.get('lugarEntrega')?.touched) {
+                    <div class="invalid-feedback">
+                      Debe especificar el lugar físico de entrega de los insumos.
+                    </div>
+                  }
               </div>
               <div class="col-12">
                 <label class="form-label fw-medium text-secondary small">Notas u Observaciones Adicionales de la OC</label>
-                <textarea class="form-control" rows="3" placeholder="Ingresa especificaciones técnicas especiales o directrices de facturación..." [(ngModel)]="ordenRequest.observaciones" name="observaciones"></textarea>
+                <textarea class="form-control" rows="3" placeholder="Ingresa especificaciones técnicas especiales o directrices de facturación..." formControlName="observaciones"></textarea>
               </div>
             </div>
           </div>
@@ -218,7 +244,7 @@
         </div>
 
         <div class="d-flex flex-column gap-2">
-          <button type="button" class="btn btn-primary w-100 py-2.5 fw-bold rounded-2 text-white" style="background-color: #003B75; border: none;" (click)="guardarOrden()">
+          <button type="button" class="btn btn-primary w-100 py-2.5 fw-bold rounded-2 text-white" [disabled]="ordenForm.invalid" style="background-color: #003B75; border: none;" (click)="guardarOrden()">
             Generar Orden de Compra real
           </button>
           <button type="button" class="btn btn-outline-secondary w-100 py-2.5 fw-medium bg-white text-dark border-light shadow-sm rounded-2" (click)="cancelar()">
@@ -229,257 +255,8 @@
       </div>
     </div>
   </div>
+
+  </form>
 </div>
 
 
-
-
-
-<!-- <div class="container-fluid py-4 bg-light min-vh-100">
-  <div class="d-flex align-items-center gap-3 mb-4">
-    <button type="button" class="btn btn-outline-secondary btn-sm rounded-2 p-2 px-3" (click)="cancelar()">
-      <i class="bi bi-chevron-left"></i>
-    </button>
-    <div>
-      <h1 class="h3 fw-bold text-dark m-0">Elaborar Orden de Compra</h1>
-      <small class="text-muted">HU05 - Formulario transaccional enlazado a Base de Datos</small>
-    </div>
-  </div>
-
-  <div class="row g-4">
-    <div class="col-lg-8">
-      <div class="d-flex flex-column gap-4">
-        
-        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-          <h5 class="fw-bold text-dark mb-3">Datos de la Orden</h5>
-          <div class="row g-3">
-            <div class="col-md-4">
-              <label class="form-label fw-medium text-secondary small">Fecha de Emisión</label>
-              <input type="date" class="form-control" [(ngModel)]="ordenRequest.fechaEmision" name="fechaEmision">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-medium text-secondary small">Fecha de Entrega Estimada *</label>
-              <input type="date" class="form-control" [(ngModel)]="ordenRequest.fechaEntrega" name="fechaEntrega">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-medium text-secondary small">Forma de Pago</label>
-              <select class="form-select text-muted" [(ngModel)]="ordenRequest.formaPago" name="formaPago">
-                <option value="">Seleccione forma de pago</option>
-                <option value="Credito">Crédito (30 días)</option>
-                <option value="Contado">Contado / Transferencia Directa</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-medium text-secondary small">Requerimiento de Origen</label>
-                <select class="form-select text-muted" [(ngModel)]="ordenRequest.idRequerimiento" name="idRequerimiento">
-                    <option [ngValue]="null">Seleccione requerimiento base</option>
-                    @for (req of requerimientosList; track req.idRequerimiento) {
-                    <option [ngValue]="req.idRequerimiento">{{ req.codigo }} - {{ req.descripcion }}</option>
-                    }
-                </select>
-            </div>
-
-            <div class="col-md-6">
-            <label class="form-label fw-medium text-secondary small">Asociar Proforma Cotizada *</label>
-            <select class="form-select text-muted" [(ngModel)]="ordenRequest.idProforma" name="idProforma" (change)="onProformaChange()">
-                <option [ngValue]="null">Seleccione proforma para jalar datos de Neon</option>
-                @for (prof of proformaList; track prof.idProforma) {
-                <option [ngValue]="prof.idProforma">{{ prof.codigo }} - {{ prof.razonSocialProveedor }}</option>
-                }
-            </select>
-            </div>
-            <!-- <div class="col-md-6">
-              <label class="form-label fw-medium text-secondary small">Requerimiento de Origen</label>
-              <select class="form-select text-muted" [(ngModel)]="ordenRequest.idRequerimiento" name="idRequerimiento">
-                <option [ngValue]="null">Seleccione requerimiento base</option>
-                @for (req of requerimientosList; track req.id) {
-                  <option [ngValue]="req.id">{{ req.descripcion }}</option>
-                }
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-medium text-secondary small">Asociar Proforma Cotizada *</label>
-              <select class="form-select text-muted fw-semibold border-primary" [(ngModel)]="ordenRequest.idProforma" name="idProforma" (change)="onProformaChange()">
-                <option [ngValue]="null">Seleccione proforma para jalar datos de Neon</option>
-                @for (prof of proformaList; track prof.id) {
-                  <option [ngValue]="prof.id">{{ prof.descripcion }}</option>
-                }
-              </select>
-            </div> -->
-          <!-- </div>
-        </div>
-
-        @if (!proveedorSeleccionado) {
-          <div class="alert alert-info border-0 shadow-sm rounded-3 p-4 m-0 d-flex align-items-center gap-3">
-            <i class="bi bi-info-circle-fill text-info fs-3"></i>
-            <div>
-              <h6 class="fw-bold m-0">Formulario en espera de origen</h6>
-              <small>Por favor, seleccione una proforma en el menú desplegable superior para extraer los ítems y datos fiscales reales de la base de datos.</small>
-            </div>
-          </div>
-        }
-
-        @if (proveedorSeleccionado) {
-          <div class="card border-0 shadow-sm rounded-3 p-4 bg-white animate-fade-in">
-            <div class="d-flex align-items-center gap-2 mb-3">
-              <i class="bi bi-building text-primary fs-5"></i>
-              <h5 class="fw-bold text-dark m-0">Datos del Proveedor Vincualdo</h5>
-            </div>
-            <div class="row g-3">
-              <div class="col-md-8">
-                <label class="form-label fw-medium text-secondary small">Razón Social</label>
-                <input type="text" class="form-control bg-light" [value]="proveedorSeleccionado.razonSocial" disabled>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-medium text-secondary small">RUC</label>
-                <input type="text" class="form-control bg-light font-monospace" [value]="proveedorSeleccionado.ruc" disabled>
-              </div>
-              <div class="col-12">
-                <label class="form-label fw-medium text-secondary small">Dirección Fiscal</label>
-                <input type="text" class="form-control bg-light" [value]="proveedorSeleccionado.direccion" disabled>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-medium text-secondary small">Persona de Contacto</label>
-                <input type="text" class="form-control bg-light" [value]="proveedorSeleccionado.contacto" disabled>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-medium text-secondary small">Teléfono de Enlace</label>
-                <input type="text" class="form-control bg-light" [value]="proveedorSeleccionado.telefono" disabled>
-              </div>
-            </div>
-          </div>
-
-          <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-            <h5 class="fw-bold text-dark mb-3">Detalle de Items de la Cotización</h5>
-            <div class="table-responsive">
-              <table class="table table-hover align-middle border-light">
-                <thead class="table-light border-bottom border-1 text-secondary small">
-                  <tr>
-                    <th scope="col" style="width: 5%">N°</th>
-                    <th scope="col" style="width: 15%">Código</th>
-                    <th scope="col" style="width: 35%">Descripción del Insumo</th>
-                    <th scope="col" style="width: 10%">Unidad</th>
-                    <th scope="col" style="width: 15%">Cantidad</th>
-                    <th scope="col" style="width: 10%">P. Unit.</th>
-                    <th scope="col" style="width: 10%" class="text-end">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody class="text-dark small">
-                  @for (item of items; track item.num) {
-                    <tr>
-                      <td class="fw-bold">{{ item.num }}</td>
-                      <td class="font-monospace text-secondary small">{{ item.codigo }}</td>
-                      <td class="fw-medium">{{ item.descripcion }}</td>
-                      <td><span class="badge bg-light text-secondary rounded-2">{{ item.unidad }}</span></td>
-                      <td>
-                        <input type="number" class="form-control form-control-sm w-75 fw-bold" [(ngModel)]="item.cantidad" [name]="'cant-' + item.num" (change)="calcularTotales()" min="1">
-                      </td>
-                      <td>S/ {{ item.precioUnit | number:'1.2-2' }}</td>
-                      <td class="text-end fw-bold text-dark">S/ {{ item.subtotal | number:'1.2-2' }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-
-            <div class="row justify-content-end mt-3 border-top pt-3 g-2">
-              <div class="col-md-5">
-                <div class="d-flex justify-content-between mb-2">
-                  <span class="text-muted small">Monto Afecto (Subtotal):</span>
-                  <span class="text-dark fw-semibold">S/ {{ subtotal | number:'1.2-2' }}</span>
-                </div>
-                <div class="d-flex justify-content-between mb-2">
-                  <span class="text-muted small">IGV Vigente (18%):</span>
-                  <span class="text-dark fw-semibold">S/ {{ igv | number:'1.2-2' }}</span>
-                </div>
-                <div class="d-flex justify-content-between border-top pt-2">
-                  <span class="text-dark fw-bold fs-5">Monto Total Liquidado:</span>
-                  <span class="text-primary fw-bold fs-5">S/ {{ total | number:'1.2-2' }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-            <h5 class="fw-bold text-dark mb-3">Condiciones de Despacho y Observaciones</h5>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label fw-medium text-secondary small">Plazo de Entrega Pactado</label>
-                <input type="text" class="form-control" [(ngModel)]="ordenRequest.plazoEntrega" name="plazoEntrega">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-medium text-secondary small">Garantía Otorgada</label>
-                <input type="text" class="form-control" [(ngModel)]="ordenRequest.garantia" name="garantia">
-              </div>
-              <div class="col-12">
-                <label class="form-label fw-medium text-secondary small">Lugar de Destino / Entrega *</label>
-                <input type="text" class="form-control" placeholder="Ej. Almacén Central de la Unidad de Abastecimiento - UNMSM" [(ngModel)]="ordenRequest.lugarEntrega" name="lugarEntrega">
-              </div>
-              <div class="col-12">
-                <label class="form-label fw-medium text-secondary small">Notas u Observaciones Adicionales de la OC</label>
-                <textarea class="form-control" rows="3" placeholder="Ingresa especificaciones técnicas especiales o directrices de facturación..." [(ngModel)]="ordenRequest.observaciones" name="observaciones"></textarea>
-              </div>
-            </div>
-          </div>
-        }
-
-      </div>
-    </div>
-
-    <div class="col-lg-4">
-      <div class="d-flex flex-column gap-4 position-sticky" style="top: 24px;">
-        
-        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-          <h5 class="fw-bold text-dark mb-4">Resumen de Consolidación</h5>
-          <div class="d-flex flex-column gap-3">
-            <div class="d-flex align-items-center gap-3">
-              <i class="bi bi-file-earmark-code text-secondary fs-4"></i>
-              <div>
-                <small class="text-muted d-block small">Código Secuencial Interno</small>
-                <span class="fw-bold font-monospace text-dark">{{ ordenRequest.nroOrden || 'Auto-generado' }}</span>
-              </div>
-            </div>
-            <hr class="text-muted m-0">
-            <div class="d-flex align-items-center gap-3">
-              <i class="bi bi-patch-check text-secondary fs-4"></i>
-              <div>
-                <small class="text-muted d-block small">Razón Social del Postor</small>
-                <span class="fw-bold text-dark">{{ proveedorSeleccionado?.razonSocial || 'Esperando selección...' }}</span>
-              </div>
-            </div>
-            <hr class="text-muted m-0">
-            <div class="d-flex align-items-center gap-3">
-              <i class="bi bi-wallet2 text-secondary fs-4"></i>
-              <div>
-                <small class="text-muted d-block small">Total Comprometido</small>
-                <span class="h4 fw-bold text-primary m-0">S/ {{ total | number:'1.2-2' }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="d-flex flex-column gap-2">
-            <button type="submit" 
-                    class="btn btn-primary w-100 py-2.5 fw-bold rounded-2 text-white" 
-                    style="background-color: #003B75; border: none;" 
-                    (click)="guardarOrden()">
-                Generar Orden de Compra real
-            </button>
-            
-            <button type="button" class="btn btn-outline-secondary w-100 py-2.5 fw-medium bg-white text-dark border-light shadow-sm rounded-2" (click)="cancelar()">
-                Cancelar Operación
-            </button>
-        </div>
-         <div class="d-flex flex-column gap-2">
-          <button type="button" class="btn btn-primary w-100 py-2.5 fw-bold rounded-2 text-white" style="background-color: #003B75; border: none;" [disabled]="!proveedorSeleccionado" (click)="guardarOrden()">
-            Generar Orden de Compra real
-          </button>
-          <button type="button" class="btn btn-outline-secondary w-100 py-2.5 fw-medium bg-white text-dark border-light shadow-sm rounded-2" (click)="cancelar()">
-            Cancelar Operación
-          </button>
-        </div> -->
-<!-- 
-      </div>
-    </div>
-  </div>
-</div>  -->

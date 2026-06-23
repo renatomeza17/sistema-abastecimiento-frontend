@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DependenciaRegistroPedido } from './dependencia-registro-pedido';
+import { DependenciaRegistroPedidoComponent } from './dependencia-registro-pedido';
 
 describe('DependenciaRegistroPedido', () => {
-  let component: DependenciaRegistroPedido;
-  let fixture: ComponentFixture<DependenciaRegistroPedido>;
+  let component: DependenciaRegistroPedidoComponent;
+  let fixture: ComponentFixture<DependenciaRegistroPedidoComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DependenciaRegistroPedido],
+      imports: [DependenciaRegistroPedidoComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(DependenciaRegistroPedido);
+    fixture = TestBed.createComponent(DependenciaRegistroPedidoComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
