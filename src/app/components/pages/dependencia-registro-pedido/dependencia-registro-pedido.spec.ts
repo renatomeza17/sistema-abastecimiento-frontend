@@ -1,10 +1,10 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { DependenciaRegistroPedidoComponent } from './dependencia-registro-pedido';
 import { PedidoService } from '../../../services/pedido.service';
 import { ProductoService } from '../../../services/producto.service';
 import { of, throwError } from 'rxjs';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PedidoResponseDTO } from '../../../api/response/pedido-responseDTO';
 import { productoResponseDTO } from '../../../api/response/productoResponseDTO';
 
