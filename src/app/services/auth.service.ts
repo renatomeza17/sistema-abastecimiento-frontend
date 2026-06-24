@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { environment } from '../environment/environment';
 import { HttpClient } from '@angular/common/http';
 import { LoginRequest } from '../api/request/login-request';
 import { Observable, tap } from 'rxjs';
-import { AuthResponse } from '../api/response/auth-response';
+import { AuthResponse, Modulo } from '../api/response/auth-response';
 
 @Injectable({
   providedIn: 'root',
@@ -11,18 +11,28 @@ import { AuthResponse } from '../api/response/auth-response';
 export class AuthService {
   private apiUrl = `${environment.apiUrl}/api/auth`;
 
+  // Signals reactivas basadas en tus tipos reales
+  currentUser = signal<string | null>(localStorage.getItem('username'));
+  currentUserRoles = signal<string[]>(JSON.parse(localStorage.getItem('roles') || '[]'));
+  currentUserModulos = signal<Modulo[]>(JSON.parse(localStorage.getItem('modulos') || '[]'));
+
   constructor(private http: HttpClient) {}
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap(res => {
-        console.log('Respuesta del login:', res);
+        // Validación exacta basada en tu DTO del backend
         if (res.token) {
           localStorage.setItem('token', res.token);
           localStorage.setItem('username', res.username);
           localStorage.setItem('nombreCompleto', res.nombreCompleto);
           localStorage.setItem('roles', JSON.stringify(res.roles));
           localStorage.setItem('modulos', JSON.stringify(res.modulos));
+
+          // Notificar cambios a la App en tiempo real
+          this.currentUser.set(res.username);
+          this.currentUserRoles.set(res.roles);
+          this.currentUserModulos.set(res.modulos);
         }
       })
     );
@@ -36,16 +46,14 @@ export class AuthService {
     return localStorage.getItem('nombreCompleto') || '';
   }
 
-  getUsername(): string {
-    return localStorage.getItem('username') || '';
+  // Validación de Roles ultra rápida gracias a Signals
+  hasRole(role: string): boolean {
+    return this.currentUserRoles().includes(role);
   }
 
-  getRoles(): string[] {
-    return JSON.parse(localStorage.getItem('roles') || '[]');
-  }
-
-  getModulos(): { descripcion: string; url: string }[] {
-    return JSON.parse(localStorage.getItem('modulos') || '[]');
+  // Método reactivo para pintar el menú lateral dinámicamente usando tus módulos
+  getModulos(): Modulo[] {
+    return this.currentUserModulos();
   }
 
   isLoggedIn(): boolean {
@@ -54,11 +62,9 @@ export class AuthService {
 
   logout(): void {
     localStorage.clear();
+    this.currentUser.set(null);
+    this.currentUserRoles.set([]);
+    this.currentUserModulos.set([]);
     window.location.href = '/login';
   }
-
-  hasRole(role: string): boolean {
-    return this.getRoles().includes(role);
-  }
-  
 }
