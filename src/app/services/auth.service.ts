@@ -11,7 +11,7 @@ import { AuthResponse, Modulo } from '../api/response/auth-response';
 export class AuthService {
   private apiUrl = `${environment.apiUrl}/api/auth`;
 
-  // Signals reactivas basadas en tus tipos reales
+  // Signals reactivas basadas en tus tipos reales de Spring Boot
   currentUser = signal<string | null>(localStorage.getItem('username'));
   currentUserRoles = signal<string[]>(JSON.parse(localStorage.getItem('roles') || '[]'));
   currentUserModulos = signal<Modulo[]>(JSON.parse(localStorage.getItem('modulos') || '[]'));
@@ -21,7 +21,6 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap(res => {
-        // Validación exacta basada en tu DTO del backend
         if (res.token) {
           localStorage.setItem('token', res.token);
           localStorage.setItem('username', res.username);
@@ -29,7 +28,7 @@ export class AuthService {
           localStorage.setItem('roles', JSON.stringify(res.roles));
           localStorage.setItem('modulos', JSON.stringify(res.modulos));
 
-          // Notificar cambios a la App en tiempo real
+          // Sincronizar las señales
           this.currentUser.set(res.username);
           this.currentUserRoles.set(res.roles);
           this.currentUserModulos.set(res.modulos);
@@ -42,18 +41,25 @@ export class AuthService {
     return localStorage.getItem('token');
   }
 
+  getUsername(): string {
+    return this.currentUser() || '';
+  }
+
   getNombreCompleto(): string {
     return localStorage.getItem('nombreCompleto') || '';
   }
 
-  // Validación de Roles ultra rápida gracias a Signals
-  hasRole(role: string): boolean {
-    return this.currentUserRoles().includes(role);
+  // SOLUCIÓN AL ERROR: Devolvemos getRoles() para el Header y Sidebar, pero leyendo la Signal
+  getRoles(): string[] {
+    return this.currentUserRoles();
   }
 
-  // Método reactivo para pintar el menú lateral dinámicamente usando tus módulos
   getModulos(): Modulo[] {
     return this.currentUserModulos();
+  }
+
+  hasRole(role: string): boolean {
+    return this.currentUserRoles().includes(role);
   }
 
   isLoggedIn(): boolean {
