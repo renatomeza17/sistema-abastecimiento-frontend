@@ -20,17 +20,19 @@
   <div class="row g-4">
 
     <div class="col-lg-8">
-      <form #kardexForm="ngForm">
+      <form [formGroup]="kardexForm">
 
         <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
           <div class="card-body p-4">
             <label class="form-label fw-bold text-primary small">Seleccionar Producto Base (*)</label>
-            <select class="form-select form-select-lg" name="idProducto" [(ngModel)]="kardexRequest.idProducto" (change)="onProductoChange()" required>
+            <select class="form-select form-select-lg" formControlName="idProducto"
+              [class.is-invalid]="kardexForm.get('idProducto')?.invalid && (kardexForm.get('idProducto')?.touched || kardexForm.get('idProducto')?.dirty)" (change)="onProductoChange()" required>
               <option [ngValue]="null" disabled selected>-- Busque y elija el producto base aquí --</option>
               <option *ngFor="let prod of productosDisponibles" [value]="prod.idProducto">
                 [{{ prod.codigo }}] - {{ prod.nombre }}
               </option>
             </select>
+            <div class="invalid-feedback">Debe seleccionar obligatoriamente un producto base.</div>
           </div>
         </div>
 
@@ -47,7 +49,8 @@
 
               <div class="col-md-6">
                 <label class="form-label fw-semibold text-secondary small">Unidad de Medida (*)</label>
-                <select class="form-select" name="unidadMedida" [(ngModel)]="kardexRequest.unidadMedida" required>
+                <select class="form-select" formControlName="unidadMedida"
+                  [class.is-invalid]="kardexForm.get('unidadMedida')?.invalid && kardexForm.get('unidadMedida')?.touched" required>
                   <option value="" disabled selected>-- Seleccione Unidad --</option>
                   <option value="UNIDAD">UNIDAD</option>
                   <option value="CAJA">CAJA</option>
@@ -55,6 +58,7 @@
                   <option value="RESMA">RESMA</option>
                   <option value="MILLAR">MILLAR</option>
                 </select>
+                <div class="invalid-feedback">La unidad de medida es requerida.</div>
               </div>
 
               <div class="col-12">
@@ -64,27 +68,31 @@
 
               <div class="col-md-6">
                 <label class="form-label fw-semibold text-secondary small">Categoría (*)</label>
-                <select class="form-select" name="categoria" [(ngModel)]="kardexRequest.categoria" required>
+                <select class="form-select" formControlName="categoria"
+                  [class.is-invalid]="kardexForm.get('categoria')?.invalid && kardexForm.get('categoria')?.touched" >
                   <option value="" disabled selected>-- Elija Categoría --</option>
                   <option value="Equipos de Cómputo">Equipos de Cómputo</option>
                   <option value="Útiles de Escritorio">Útiles de Escritorio</option>
                   <option value="Materiales de Oficina">Materiales de Oficina</option>
                 </select>
+                <div class="invalid-feedback">Seleccione una categoría de control.</div>
               </div>
 
               <div class="col-md-6">
                 <label class="form-label fw-semibold text-secondary small">Subcategoría (*)</label>
-                <select class="form-select" name="subcategoria" [(ngModel)]="kardexRequest.subcategoria" required>
+                <select class="form-select" formControlName="subcategoria"
+                    [class.is-invalid]="kardexForm.get('subcategoria')?.invalid && kardexForm.get('subcategoria')?.touched" >
                   <option value="" disabled selected>-- Elija Subcategoría --</option>
                   <option value="Archivo">Archivo</option>
                   <option value="Periféricos">Periféricos</option>
                   <option value="Papelería">Papelería</option>
                 </select>
+                <div class="invalid-feedback">Seleccione una subcategoría obligatoria.</div>
               </div>
 
               <div class="col-12">
                 <label class="form-label fw-semibold text-secondary small">Descripción Detallada / Observaciones</label>
-                <textarea class="form-control" name="caracteristicas" [(ngModel)]="kardexRequest.caracteristicas" rows="3" placeholder="Características particulares o condiciones de almacenamiento..."></textarea>
+                <textarea class="form-control" formControlName="caracteristicas" rows="3" placeholder="Características particulares o condiciones de almacenamiento..."></textarea>
               </div>
             </div>
           </div>
@@ -98,7 +106,18 @@
             <div class="row g-3">
               <div class="col-md-6">
                 <label class="form-label fw-semibold text-secondary small">Stock Mínimo de Alerta (*)</label>
-                <input type="number" class="form-control" name="stockMinimo" [(ngModel)]="kardexRequest.stockMinimo" placeholder="Ej: 10" min="1" required>
+                <input type="number" class="form-control" formControlName="stockMinimo"
+                  [class.is-invalid]="kardexForm.get('stockMinimo')?.invalid && kardexForm.get('stockMinimo')?.touched"
+                  placeholder="Ej: 10" placeholder="Ej: 10" min="1" required>
+                  
+                 @if (kardexForm.get('stockMinimo')?.invalid && kardexForm.get('stockMinimo')?.touched) {
+                  <div class="invalid-feedback">
+                    @if (kardexForm.get('stockMinimo')?.errors?.['required']) { <span>El stock mínimo es requerido.</span> }
+                    @if (kardexForm.get('stockMinimo')?.errors?.['min']) { <span>Regla de negocio: No se admiten stocks menores a 1.</span> }
+                  </div>
+                }
+
+
               </div>
 
               <div class="col-md-6">
@@ -115,13 +134,22 @@
             <div class="row g-3">
               <div class="col-12">
                 <label class="form-label fw-semibold text-secondary small">Ubicación Física Directa (*)</label>
-                <input type="text" class="form-control" name="ubicacionAlmacen" [(ngModel)]="kardexRequest.ubicacionAlmacen" placeholder="Ej: Zona A - Estante 02 - Nivel 03" required>
-              </div>
+                <input type="text" class="form-control" formControlName="ubicacionAlmacen"
+                  [class.is-invalid]="kardexForm.get('ubicacionAlmacen')?.invalid && kardexForm.get('ubicacionAlmacen')?.touched"  placeholder="Ej: A-02-03"   required>
+                  @if (kardexForm.get('ubicacionAlmacen')?.invalid && kardexForm.get('ubicacionAlmacen')?.touched) {
+                  <div class="invalid-feedback">
+                    @if (kardexForm.get('ubicacionAlmacen')?.errors?.['required']) { <span>La ubicación es obligatoria.</span> }
+                    @if (kardexForm.get('ubicacionAlmacen')?.errors?.['pattern']) { <span>Estructura inválida. Siga el formato: 'Zona [Letra] - Estante [2 digitos] - Nivel [2 digitos]  Ejm: A-22-33.</span> }
+                  </div>
+                  }
+                  
+                </div>
             </div>
           </div>
         </div>
 
       </form>
+      
     </div>
 
     <div class="col-lg-4">
@@ -146,24 +174,24 @@
 
           <div class="d-flex justify-content-between mb-2 small">
             <span class="text-muted">Categoría:</span>
-            <span class="fw-semibold text-dark">{{ kardexRequest.categoria || '-' }}</span>
+            <span class="fw-semibold text-dark">{{kardexForm.get('categoria')?.value || '-' }}</span>
           </div>
 
           <div class="d-flex justify-content-between mb-2 small">
             <span class="text-muted">Unidad Medida:</span>
-            <span class="fw-semibold text-dark text-uppercase">{{ kardexRequest.unidadMedida || '-' }}</span>
+            <span class="fw-semibold text-dark text-uppercase">{{ kardexForm.get('unidadMedida')?.value || '-' }}</span>
           </div>
 
           <div class="d-flex justify-content-between mb-2 small">
             <span class="text-muted">Ubicación:</span>
             <span class="fw-semibold text-primary text-truncate" style="max-width: 160px;">
-              {{ kardexRequest.ubicacionAlmacen || '-' }}
+              {{ kardexForm.get('ubicacionAlmacen')?.value || '-' }}
             </span>
           </div>
 
           <div class="d-flex justify-content-between small">
             <span class="text-muted">Stock Mínimo:</span>
-            <span class="fw-semibold text-danger">{{ kardexRequest.stockMinimo ? (kardexRequest.stockMinimo + ' unds') : '-' }}</span>
+            <span class="fw-semibold text-danger">{{ kardexForm.get('stockMinimo')?.value ? (kardexForm.get('stockMinimo')?.value + ' unds') : '-' }}</span>
           </div>
         </div>
       </div>
@@ -183,7 +211,7 @@
             type="button" 
             class="btn btn-light border py-2.5 w-100 fw-medium text-secondary" 
             style="border-radius: 8px;" 
-            routerLink="/ordenes">
+            routerLink="/kardex">
             Cancelar Operación
           </button>
         </div>
