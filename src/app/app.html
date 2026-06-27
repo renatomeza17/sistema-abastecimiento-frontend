@@ -1,4 +1,11 @@
+@if(loadingService.loading$ | async){
+  <span class="loader"></span>
+  <div class="loading-overlay">
+    <div class="spinner-container">
+      <span class="loader"></span>
+      <span class="loading-text">Cargando...</span>
+    </div>
+  </div>
+}
 
-  <router-outlet></router-outlet> 
-
-
+<router-outlet />
