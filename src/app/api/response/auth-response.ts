@@ -4,6 +4,7 @@ export interface AuthResponse {
     nombreCompleto: string;
     roles: string[];
     modulos: Modulo[];
+    refreshToken: string;
 }
 
 export interface Modulo {
