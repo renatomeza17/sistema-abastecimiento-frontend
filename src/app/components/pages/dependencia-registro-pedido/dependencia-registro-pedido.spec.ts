@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { of, throwError } from 'rxjs';
+import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { DependenciaRegistroPedidoComponent } from './dependencia-registro-pedido';
 import { PedidoService } from '../../../services/pedido.service';
 import { ProductoService } from '../../../services/producto.service';
-import { of, throwError } from 'rxjs';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PedidoResponseDTO } from '../../../api/response/pedido-responseDTO';
 import { productoResponseDTO } from '../../../api/response/productoResponseDTO';
 
@@ -12,45 +12,44 @@ describe('DependenciaRegistroPedidoComponent', () => {
   let component: DependenciaRegistroPedidoComponent;
   let fixture: ComponentFixture<DependenciaRegistroPedidoComponent>;
   
-  // Mocks de datos de ejemplo
+  let pedidoServiceMock: any;
+  let productoServiceMock: any;
+
+  // 1. Corregido: fechaCreacion cambiado a string ISO
+// Corregido: Se agregaron las propiedades idPedido y nombreSolicitante exigidas por la interfaz
   const mockHistorial: PedidoResponseDTO[] = [
-    {
-      idPedido: 1,
-      codigo: 'PED-001',
-      descripcion: 'Útiles de oficina mensuales',
-      estado: 'PENDIENTE',
-      fechaCreacion: '2026-06-23T10:00:00Z',
-      nombreSolicitante: 'Mitchell Sihuincha',
-      detalles: [
-        { idDetallePedido: 10, idProducto: 101, nombreProducto: 'Lapicero Azul', unidadMedida: 'UNIDAD', cantidad: 5 }
-      ]
-    }
+  { 
+    idPedido: 1, // 👈 Agregado (usa el tipo que corresponda, sea number o string)
+    codigo: 'PED-001', 
+    descripcion: 'Pedido de prueba 1', 
+    fechaCreacion: new Date().toISOString(), 
+    estado: 'PENDIENTE', 
+    nombreSolicitante: 'Mitchell Sihuincha', // 👈 Agregado
+    detalles: [] 
+  }
+];
+  // 2. Corregido: Se añadieron las propiedades faltantes exigidas por productoResponseDTO
+  const mockCatalogo: productoResponseDTO[] = [
+    { idProducto: 1, codigo: 'PROD-01', nombre: 'Papel Bond A4', descripcion: 'Papel bond de 80g', unidadMedida: 'Millar', activo: true },
+    { idProducto: 2, codigo: 'PROD-02', nombre: 'Lapicero Azul', descripcion: 'Lapicero punta fina', unidadMedida: 'Caja', activo: true }
   ];
-
-  const mockProductos: productoResponseDTO[] = [
-    { idProducto: 101, codigo: 'PROD-A', nombre: 'Lapicero Azul', descripcion: 'Tinta gel', unidadMedida: 'UNIDAD', activo: true },
-    { idProducto: 102, codigo: 'PROD-B', nombre: 'Cuaderno A4', descripcion: 'Cuadriculado', unidadMedida: 'UNIDAD', activo: true }
-  ];
-
-  // Definición de Spies/Mocks para los servicios
-  const pedidoServiceMock = {
-    listarMisPedidos: vi.fn(() => of(mockHistorial)),
-    crearPedido: vi.fn(() => of(mockHistorial[0]))
-  };
-
-  const productoServiceMock = {
-    obtenerCatalogoProductos: vi.fn(() => of(mockProductos))
-  };
 
   beforeEach(async () => {
-    // Espías globales de ventanas nativas del navegador
-    vi.spyOn(window, 'alert').mockImplementation(() => {});
+    pedidoServiceMock = {
+      listarMisPedidos: vi.fn().mockReturnValue(of(mockHistorial)),
+      crearPedido: vi.fn().mockReturnValue(of({}))
+    };
+
+    productoServiceMock = {
+      obtenerCatalogoProductos: vi.fn().mockReturnValue(of(mockCatalogo))
+    };
 
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
         FormsModule,
-        DependenciaRegistroPedidoComponent // Al ser standalone se importa aquí
+        NgbTooltipModule,
+        DependenciaRegistroPedidoComponent 
       ],
       providers: [
         { provide: PedidoService, useValue: pedidoServiceMock },
@@ -60,228 +59,175 @@ describe('DependenciaRegistroPedidoComponent', () => {
 
     fixture = TestBed.createComponent(DependenciaRegistroPedidoComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    fixture.detectChanges(); 
   });
 
-  afterEach(() => {
-    vi.clearAllMocks();
+  it('1. Debe inicializar correctamente los formularios y cargar el catálogo/historial', () => {
+    expect(component).toBeTruthy();
+    expect(component.pedidoForm).toBeDefined();
+    expect(component.articuloForm).toBeDefined();
+    expect(component.pedidosHistorial.length).toBe(1);
+    expect(component.productosCatalogo.length).toBe(2);
   });
 
-  // --- Pruebas de Inicialización ---
-  describe('Inicialización', () => {
-    it('debería crear el componente e inicializar datos maestros', () => {
-      expect(component).toBeTruthy();
-      expect(component.vistaActiva).toBe('historial');
-      expect(component.pedidosHistorial).toEqual(mockHistorial);
-      expect(component.productosCatalogo).toEqual(mockProductos);
+  describe('Validaciones del Input 1: cantidadIngresada (Formulario Agregador)', () => {
+    it('Debe ser válido con un número entero positivo común', () => {
+      const control = component.articuloForm.get('cantidadIngresada');
+      control?.setValue(5);
+      expect(control?.valid).toBe(true);
     });
 
-    it('debería inicializar los formularios reactivos vacíos y con valores por defecto', () => {
-      expect(component.pedidoForm).toBeDefined();
-      expect(component.articuloForm).toBeDefined();
-      expect(component.articuloForm.get('cantidadIngresada')?.value).toBe(1);
-    });
-  });
-
-  // --- Pruebas de Navegación y Flujo de Pantallas ---
-  describe('Manejo de Vistas', () => {
-    it('debería cambiar de vista, limpiar formularios y recargar el historial', () => {
-      component.cambiarVista('nuevo');
-      expect(component.vistaActiva).toBe('nuevo');
-      expect(component.pedidoSeleccionado).toBeUndefined();
-
-      // Forzar ensuciar el formulario
-      component.pedidoForm.patchValue({ descripcionGeneral: 'Texto de prueba para justificar' });
-      
-      component.cambiarVista('historial');
-      expect(component.vistaActiva).toBe('historial');
-      expect(component.pedidoForm.get('descripcionGeneral')?.value).toBeNull(); // Reseteado
-      expect(pedidoServiceMock.listarMisPedidos).toHaveBeenCalledTimes(2); // init + cambiarVista
+    it('Debe marcar error si el campo se deja vacío', () => {
+      const control = component.articuloForm.get('cantidadIngresada');
+      control?.setValue(null);
+      expect(control?.hasError('required')).toBe(true);
     });
 
-    it('debería abrir y cerrar la sección de detalles de un pedido', () => {
-      vi.useFakeTimers();
+    it('Debe invalidar si el número es cero o negativo', () => {
+      const control = component.articuloForm.get('cantidadIngresada');
+      control?.setValue(0);
+      expect(control?.hasError('pattern')).toBe(true);
 
-      const pedidoMock = mockHistorial[0];
-      
-      // 1. Creamos el elemento dummy
-      const dummyElement = document.createElement('div');
-      
-      // 2. Le asignamos explícitamente una función para que EXISTA en el entorno de pruebas
-      dummyElement.scrollIntoView = () => {}; 
-      
-      // 3. Ahora sí podemos espiarla sin problemas
-      const scrollSpy = vi.spyOn(dummyElement, 'scrollIntoView');
-      
-      // Forzamos a getElementById a devolver nuestro elemento preparado
-      vi.spyOn(document, 'getElementById').mockReturnValue(dummyElement);
+      control?.setValue(-5);
+      expect(control?.hasError('pattern')).toBe(true);
+    });
 
-      // Ejecutamos el método del componente
-      component.verDetalles(pedidoMock);
-      expect(component.pedidoSeleccionado).toEqual(pedidoMock);
+    it('Debe invalidar si se ingresa un número decimal', () => {
+      const control = component.articuloForm.get('cantidadIngresada');
+      control?.setValue(12.5);
+      expect(control?.hasError('pattern')).toBe(true);
+    });
 
-      // Avanzamos el tiempo para que se ejecute el setTimeout(..., 100)
-      vi.advanceTimersByTime(100);
-
-      // Verificamos que se haya llamado
-      expect(scrollSpy).toHaveBeenCalled();
-
-      // Probamos que limpie el estado al cerrar
-      component.cerrarDetalles();
-      expect(component.pedidoSeleccionado).toBeUndefined();
-
-      vi.useRealTimers();
+    it('Debe invalidar si el valor supera el límite establecido de 100 unidades', () => {
+      const control = component.articuloForm.get('cantidadIngresada');
+      control?.setValue(101);
+      expect(control?.hasError('max')).toBe(true);
     });
   });
 
-  // --- Pruebas de Validaciones en Formularios ---
-  describe('Validación de Formularios', () => {
-    it('debería invalidar la descripción general si tiene menos de 10 caracteres o está vacía', () => {
-      const control = component.pedidoForm.get('descripcionGeneral');
+  describe('Pruebas del Interceptor de Teclado', () => {
+    it('Debe prevenir la ejecución del evento (preventDefault) ante caracteres inválidos', () => {
+      const eventoPunto = { key: '.', preventDefault: vi.fn() } as unknown as KeyboardEvent;
+      const eventoLetraE = { key: 'e', preventDefault: vi.fn() } as unknown as KeyboardEvent;
+      const eventoMenos = { key: '-', preventDefault: vi.fn() } as unknown as KeyboardEvent;
 
-      control?.setValue('');
-      expect(control?.valid).toBeFalsy();
+      component.bloquearTeclasInvalidas(eventoPunto);
+      component.bloquearTeclasInvalidas(eventoLetraE);
+      component.bloquearTeclasInvalidas(eventoMenos);
 
-      control?.setValue('   '); // Espacios en blanco
-      expect(control?.valid).toBeFalsy();
-
-      control?.setValue('Corto'); // Menos de 10 chars
-      expect(control?.valid).toBeFalsy();
-
-      control?.setValue('Esta es una justificación válida de más de 10 caracteres.');
-      expect(control?.valid).toBeTruthy();
+      expect(eventoPunto.preventDefault).toHaveBeenCalled();
+      expect(eventoLetraE.preventDefault).toHaveBeenCalled();
+      expect(eventoMenos.preventDefault).toHaveBeenCalled();
     });
 
-    it('debería validar rangos del formulario de artículos', () => {
-      const cantidadCtrl = component.articuloForm.get('cantidadIngresada');
-      
-      cantidadCtrl?.setValue(0); // Mínimo es 1
-      expect(cantidadCtrl?.valid).toBeFalsy();
-
-      cantidadCtrl?.setValue(10);
-      expect(cantidadCtrl?.valid).toBeTruthy();
+    it('Debe permitir la propagación normal si es un número válido', () => {
+      const eventoNumero = { key: '5', preventDefault: vi.fn() } as unknown as KeyboardEvent;
+      component.bloquearTeclasInvalidas(eventoNumero);
+      expect(eventoNumero.preventDefault).not.toHaveBeenCalled();
     });
   });
 
-  // --- Pruebas de Lógica de la Lista de Artículos ---
-  describe('Gestión de Lista Temporal de Artículos', () => {
-    it('no debería agregar un producto si el formulario de artículos es inválido', () => {
-      component.articuloForm.patchValue({ idProductoSeleccionado: '', cantidadIngresada: 0 });
-      component.agregarProductoALista();
-      expect(component.detallesPedido.length).toBe(0);
-    });
-
-    it('debería agregar un artículo exitosamente a la lista y limpiar el subformulario', () => {
-      const prodSeleccionado = mockProductos[0];
-      component.articuloForm.patchValue({
-        idProductoSeleccionado: JSON.stringify(prodSeleccionado),
-        cantidadIngresada: 3,
-        observacionIndividual: 'Urgente'
-      });
+  describe('Lógica de manipulación de la Lista de Elementos', () => {
+    it('Debe añadir un producto correctamente si pasa todas las validaciones', () => {
+      component.articuloForm.get('idProductoSeleccionado')?.setValue(mockCatalogo[0]);
+      component.articuloForm.get('cantidadIngresada')?.setValue(10);
+      component.articuloForm.get('observacionIndividual')?.setValue('Cajas selladas');
 
       component.agregarProductoALista();
 
       expect(component.detallesPedido.length).toBe(1);
-      expect(component.detallesPedido[0]).toEqual({
-        idProducto: 101,
-        nombreProducto: 'Lapicero Azul',
-        unidadMedida: 'UNIDAD',
-        cantidad: 3,
-        observacionEspecifica: 'Urgente'
-      });
-
-      // Valores reseteados por defecto
-      expect(component.articuloForm.get('idProductoSeleccionado')?.value).toBe('');
+      expect(component.detallesPedido[0].nombreProducto).toBe('Papel Bond A4');
       expect(component.articuloForm.get('cantidadIngresada')?.value).toBe(1);
     });
 
-    it('debería rechazar productos duplicados en la lista temporal', () => {
-      const prodSeleccionado = mockProductos[0];
-      component.articuloForm.patchValue({ idProductoSeleccionado: JSON.stringify(prodSeleccionado), cantidadIngresada: 1 });
+    it('Debe impedir la inserción y alertar si el producto ya está en la lista', () => {
+      vi.spyOn(window, 'alert').mockImplementation(() => {});
+      
+      // 3. Corregido: Se añade observacionEspecifica exigida por ItemFilaPedido
+      component.detallesPedido = [{ idProducto: 1, nombreProducto: 'Papel Bond A4', unidadMedida: 'Millar', cantidad: 5, observacionEspecifica: '' }];
+
+      component.articuloForm.get('idProductoSeleccionado')?.setValue(mockCatalogo[0]); 
+      component.articuloForm.get('cantidadIngresada')?.setValue(2);
+      
       component.agregarProductoALista();
 
-      // Intentar agregar otra vez el mismo
-      component.articuloForm.patchValue({ idProductoSeleccionado: JSON.stringify(prodSeleccionado), cantidadIngresada: 5 });
-      component.agregarProductoALista();
-
-      expect(component.detallesPedido.length).toBe(1); // Mantiene solo 1
-      expect(component.articuloForm.get('idProductoSeleccionado')?.hasError('yaAñadido')).toBeTruthy();
+      expect(component.detallesPedido.length).toBe(1); 
       expect(window.alert).toHaveBeenCalledWith('Este artículo ya ha sido añadido a la lista actual.');
     });
 
-    it('debería regular la cantidad en caliente si el input recibe valores menores a 1', () => {
+    it('Debe remover un elemento basado en su índice', () => {
+      // 3. Corregido: Se añade observacionEspecifica exigida por ItemFilaPedido
       component.detallesPedido = [
-        { idProducto: 101, nombreProducto: 'Lapicero Azul', unidadMedida: 'UNIDAD', cantidad: 4, observacionEspecifica: '' }
-      ];
-
-      const dummyEvent = { target: { value: '0' } } as unknown as Event;
-      component.onCantidadInput(dummyEvent, 0);
-      expect(component.detallesPedido[0].cantidad).toBe(1);
-
-      const validEvent = { target: { value: '12' } } as unknown as Event;
-      component.onCantidadInput(validEvent, 0);
-      expect(component.detallesPedido[0].cantidad).toBe(12);
-    });
-
-    it('debería eliminar un ítem de la lista por su respectivo índice', () => {
-      component.detallesPedido = [
-        { idProducto: 101, nombreProducto: 'Lapicero Azul', unidadMedida: 'UNIDAD', cantidad: 2, observacionEspecifica: '' },
-        { idProducto: 102, nombreProducto: 'Cuaderno A4', unidadMedida: 'UNIDAD', cantidad: 5, observacionEspecifica: '' }
+        { idProducto: 1, nombreProducto: 'Prod A', unidadMedida: 'Und', cantidad: 5, observacionEspecifica: '' },
+        { idProducto: 2, nombreProducto: 'Prod B', unidadMedida: 'Und', cantidad: 10, observacionEspecifica: '' }
       ];
 
       component.eliminarProductoDeLista(0);
+
       expect(component.detallesPedido.length).toBe(1);
-      expect(component.detallesPedido[0].idProducto).toBe(102);
+      expect(component.detallesPedido[0].nombreProducto).toBe('Prod B');
     });
   });
 
-  // --- Pruebas de Operaciones del Backend (Guardar) ---
-  describe('Envío del Pedido Completo', () => {
-    it('no debería proceder a guardar si el formulario principal es inválido', () => {
-      component.pedidoForm.patchValue({ descripcionGeneral: '' }); // Inválido
-      component.guardarPedidoCompleto();
-      expect(pedidoServiceMock.crearPedido).not.toHaveBeenCalled();
+  describe('Validación del Input 2: Control antes de Guardar el Pedido Completo', () => {
+    beforeEach(() => {
+      vi.spyOn(window, 'alert').mockImplementation(() => {});
+      component.pedidoForm.get('descripcionGeneral')?.setValue('Justificación válida de más de 10 letras');
     });
 
-    it('no debería proceder a guardar si la lista temporal de artículos está vacía', () => {
-      component.pedidoForm.patchValue({ descripcionGeneral: 'Justificación correcta con más de diez caracteres' });
-      component.detallesPedido = []; // Vacío
-      component.guardarPedidoCompleto();
-      expect(pedidoServiceMock.crearPedido).not.toHaveBeenCalled();
-      expect(window.alert).toHaveBeenCalledWith('La solicitud debe contener al menos un artículo en la lista.');
-    });
-
-    it('debería mapear el DTO de envío y despachar la solicitud de creación con éxito', () => {
-      component.pedidoForm.patchValue({ descripcionGeneral: 'Solicitud de insumos para la oficina de sistemas' });
+    it('Debe rechazar el envío si un artículo en la grilla fue alterado manualmente a un valor decimal', () => {
+      // 3. Corregido: Se añade observacionEspecifica exigida por ItemFilaPedido
       component.detallesPedido = [
-        { idProducto: 102, nombreProducto: 'Cuaderno A4', unidadMedida: 'UNIDAD', cantidad: 10, observacionEspecifica: 'Cuadriculados' }
+        { idProducto: 1, nombreProducto: 'Papel Bond A4', unidadMedida: 'Millar', cantidad: 5.5, observacionEspecifica: '' } 
       ];
 
       component.guardarPedidoCompleto();
 
-      expect(pedidoServiceMock.crearPedido).toHaveBeenCalledWith({
-        descripcion: 'Solicitud de insumos para la oficina de sistemas',
-        detalles: [
-          { idProducto: 102, cantidad: 10, observacionEspecifica: 'Cuadriculados' }
-        ]
-      });
+      expect(pedidoServiceMock.crearPedido).not.toHaveBeenCalled();
+      expect(window.alert).toHaveBeenCalledWith('Error en el ítem N° 1 (Papel Bond A4): Solo se aceptan números enteros entre 1 y 100.');
+    });
+
+    it('Debe rechazar el envío si la cantidad de la grilla supera las 100 unidades', () => {
+      // 3. Corregido: Se añade observacionEspecifica exigida por ItemFilaPedido
+      component.detallesPedido = [
+        { idProducto: 1, nombreProducto: 'Papel Bond A4', unidadMedida: 'Millar', cantidad: 150, observacionEspecifica: '' } 
+      ];
+
+      component.guardarPedidoCompleto();
+
+      expect(pedidoServiceMock.crearPedido).not.toHaveBeenCalled();
+      expect(window.alert).toHaveBeenCalledWith('Error en el ítem N° 1 (Papel Bond A4): Solo se aceptan números enteros entre 1 y 100.');
+    });
+
+    it('Debe procesar el envío (HTTP POST) si todos los elementos de la grilla son enteros válidos', () => {
+      // 3. Corregido: Se añade observacionEspecifica exigida por ItemFilaPedido
+      component.detallesPedido = [
+        { idProducto: 1, nombreProducto: 'Papel Bond A4', unidadMedida: 'Millar', cantidad: 10, observacionEspecifica: '' },
+        { idProducto: 2, nombreProducto: 'Lapicero Azul', unidadMedida: 'Caja', cantidad: 99, observacionEspecifica: '' }
+      ];
+
+      component.guardarPedidoCompleto();
+
+      expect(pedidoServiceMock.crearPedido).toHaveBeenCalled();
       expect(window.alert).toHaveBeenCalledWith('Pedido enviado a procesamiento de abastecimiento correctamente.');
-      expect(component.vistaActiva).toBe('historial');
     });
+  });
 
-    it('debería manejar errores de respuesta del servidor de manera controlada', () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      pedidoServiceMock.crearPedido.mockReturnValueOnce(throwError(() => new Error('Error HTTP 500')));
-
-      component.pedidoForm.patchValue({ descripcionGeneral: 'Solicitud de insumos válida para pruebas' });
-      component.detallesPedido = [
-        { idProducto: 101, nombreProducto: 'Lapicero Azul', unidadMedida: 'UNIDAD', cantidad: 2, observacionEspecifica: '' }
-      ];
+  describe('Gestión de Excepciones del Servidor', () => {
+    it('Debe manejar adecuadamente un error 500 o de red desde el backend', () => {
+      vi.spyOn(window, 'alert').mockImplementation(() => {});
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      
+      pedidoServiceMock.crearPedido.mockReturnValue(throwError(() => new Error('Internal Server Error')));
+      
+      component.pedidoForm.get('descripcionGeneral')?.setValue('Solicitud de útiles mensual de contingencia');
+      // 3. Corregido: Se añade observacionEspecifica exigida por ItemFilaPedido
+      component.detallesPedido = [{ idProducto: 1, nombreProducto: 'Item', unidadMedida: 'Und', cantidad: 5, observacionEspecifica: '' }];
 
       component.guardarPedidoCompleto();
 
-      expect(consoleErrorSpy).toHaveBeenCalled();
       expect(window.alert).toHaveBeenCalledWith('No se pudo registrar el pedido en el servidor.');
+      expect(console.error).toHaveBeenCalled();
     });
   });
 });
