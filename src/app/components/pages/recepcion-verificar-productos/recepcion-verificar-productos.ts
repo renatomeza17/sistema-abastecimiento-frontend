@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { OrdenResponseDTO } from '../../../api/response/ordenResponseDTO';
 import { Recepcion } from '../../../services/recepcion';
+import { KardexService } from '../../../services/kardex.service';
 
 @Component({
   selector: 'app-recepcion-verificar-productos',
@@ -28,10 +29,24 @@ export class RecepcionVerificarProductosComponent implements OnInit {
   productosVerificados: { [idDetalle: number]: boolean } = {};
   incidencias: { [idDetalle: number]: string } = {};
 
-  constructor(private recepcionService: Recepcion) {}
+  inventarioGeneral: any[] = [];
+  kardexErrors: string[] = [];
+
+  constructor(
+    private recepcionService: Recepcion,
+    private kardexService: KardexService
+  ) {}
 
   ngOnInit(): void {
     this.cargarOrdenes();
+    this.cargarInventario();
+  }
+
+  cargarInventario(): void {
+    this.kardexService.obtenerInventarioGeneral().subscribe({
+      next: (data) => this.inventarioGeneral = data,
+      error: () => console.warn('No se pudo cargar inventario kardex')
+    });
   }
 
   cargarOrdenes(): void {
@@ -182,10 +197,8 @@ export class RecepcionVerificarProductosComponent implements OnInit {
 
     this.recepcionService.recepcionarOrden(this.ordenSeleccionada.idOrden).subscribe({
       next: () => {
-        this.mensaje = 'Recepción confirmada correctamente.';
-        this.error = '';
-        this.ordenSeleccionada = undefined;
-        this.cargarOrdenes();
+        this.kardexErrors = [];
+        this.registrarMovimientosKardex();
       },
       error: (error) => {
         console.error('Error al confirmar recepción:', error);
@@ -193,6 +206,99 @@ export class RecepcionVerificarProductosComponent implements OnInit {
         this.mensaje = '';
       }
     });
+  }
+
+  registrarMovimientosKardex(): void {
+    if (!this.ordenSeleccionada) return;
+
+    const orden = this.ordenSeleccionada;
+    const pendientes = orden.detalles.filter(d => this.productosVerificados[d.id]);
+    let completados = 0;
+
+    if (pendientes.length === 0) {
+      this.mensaje = 'Recepción confirmada correctamente.';
+      this.ordenSeleccionada = undefined;
+      this.cargarOrdenes();
+      this.cargarInventario();
+      return;
+    }
+
+    pendientes.forEach(detalle => {
+      this.registrarEntradaConKardex(detalle, orden, () => {
+        completados++;
+        if (completados === pendientes.length) this.finalizarRecepcion();
+      });
+    });
+  }
+
+  private registrarEntradaConKardex(detalle: any, orden: any, onComplete: () => void): void {
+    const kardex = this.inventarioGeneral.find(
+      (k: any) => k.idProducto === detalle.productoId
+    );
+
+    if (kardex) {
+      this.crearMovimientoEntrada(detalle, orden, onComplete);
+    } else {
+      this.crearFichaKardex(detalle, orden, onComplete);
+    }
+  }
+
+  private crearFichaKardex(detalle: any, orden: any, onComplete: () => void): void {
+    const payload = {
+      idProducto: detalle.productoId,
+      stockMinimo: 5,
+      ubicacionAlmacen: 'Por definir',
+      caracteristicas: `Ficha creada automáticamente al recepcionar OC ${orden.codigo}`
+    };
+
+    this.kardexService.crearNuevoAsiento(payload).subscribe({
+      next: () => {
+        this.inventarioGeneral.push({
+          idProducto: detalle.productoId,
+          nombreProducto: detalle.nombreProducto,
+          stockActual: 0
+        });
+        this.crearMovimientoEntrada(detalle, orden, onComplete);
+      },
+      error: (err) => {
+        this.kardexErrors.push(
+          `No se pudo crear ficha kárdex para "${detalle.nombreProducto}": ${err.error?.message || err.error || err.message}`
+        );
+        onComplete();
+      }
+    });
+  }
+
+  private crearMovimientoEntrada(detalle: any, orden: any, onComplete: () => void): void {
+    const payload = {
+      idProducto: detalle.productoId,
+      tipoMovimiento: 'ENTRADA',
+      cantidad: detalle.cantidad,
+      documentoReferencia: orden.codigo,
+      observaciones: `Recepción OC ${orden.codigo} - Verificación conforme`
+    };
+
+    this.kardexService.registrarMovimiento(payload).subscribe({
+      next: () => onComplete(),
+      error: (err) => {
+        this.kardexErrors.push(
+          `Error al registrar entrada de "${detalle.nombreProducto}": ${err.error?.message || err.error || err.message}`
+        );
+        onComplete();
+      }
+    });
+  }
+
+  finalizarRecepcion(): void {
+    const msgBase = 'Recepción confirmada correctamente.';
+    if (this.kardexErrors.length > 0) {
+      this.mensaje = msgBase + ' Algunos productos no se registraron en kárdex. Revisa los errores.';
+    } else {
+      this.mensaje = msgBase + ' Stock actualizado en kárdex.';
+    }
+    this.ordenSeleccionada = undefined;
+    this.cargarOrdenes();
+    this.cargarInventario();
   }
 
   registrarPedidoPendiente(): void {

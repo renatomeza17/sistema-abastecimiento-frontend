@@ -135,7 +135,7 @@
                       <td class="fw-medium">{{ item.descripcion }}</td>
                       <td><span class="badge bg-light text-secondary rounded-2">{{ item.unidad }}</span></td>
                       <td>
-                        <input type="number" class="form-control form-control-sm w-75 fw-bold" [(ngModel)]="item.cantidad" [name]="'cant-' + item.num" (change)="calcularTotales()" min="1">
+                        <input type="number" class="form-control form-control-sm w-75 fw-bold" [(ngModel)]="item.cantidad" [name]="'cant-' + item.num" [ngModelOptions]="{standalone: true}" (change)="calcularTotales()" min="1">
                       </td>
                       <td>S/ {{ item.precioUnit | number:'1.2-2' }}</td>
                       <td class="text-end fw-bold text-dark">S/ {{ item.subtotal | number:'1.2-2' }}</td>

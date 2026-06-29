@@ -17,8 +17,6 @@ const refreshTokenSubject: BehaviorSubject<string | null> =
   new BehaviorSubject<string | null>(null);
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  console.log('[AUTH INTERCEPTOR] URL:', req.url);
-
   const storageService = inject(StorageService);
   const authService = inject(AuthService);
 
@@ -31,7 +29,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const shouldExclude = excludedPaths.some(path => req.url.includes(path));
 
   if (shouldExclude) {
-    console.log('[AUTH INTERCEPTOR] Ruta excluida:', req.url);
     return next(req);
   }
 
@@ -49,13 +46,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error) => {
-      console.log('[AUTH INTERCEPTOR] Error capturado:', error.status, req.url);
-
-      if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
-        console.log('[AUTH INTERCEPTOR] Token expirado. Intentando refresh...');
+      if (error instanceof HttpErrorResponse && error.status === 401) {
         return refreshTokenAndRetry(req, next, authService);
       }
-
       return throwError(() => error);
     })
   );
@@ -75,8 +68,6 @@ function refreshTokenAndRetry(
       switchMap((response: any) => {
         const newToken = response.token;
 
-        console.log('[AUTH INTERCEPTOR] Nuevo token recibido');
-
         refreshTokenSubject.next(newToken);
 
         const retryRequest = request.clone({
@@ -88,10 +79,9 @@ function refreshTokenAndRetry(
         return next(retryRequest);
       }),
       catchError((err) => {
-        console.error('[AUTH INTERCEPTOR] Error al refrescar token:', err);
-
-        authService.logout();
-
+        if (err instanceof HttpErrorResponse && err.status === 401) {
+          authService.logout();
+        }
         return throwError(() => err);
       }),
       finalize(() => {

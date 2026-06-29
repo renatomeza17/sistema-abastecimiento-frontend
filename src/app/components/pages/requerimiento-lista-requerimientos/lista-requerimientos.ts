@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../../services/producto.service';
 import { RequerimientoService } from '../../../services/requerimiento.service';
+import { AuthService } from '../../../services/auth.service';
 import { RequerimientoRequestDTO } from '../../../api/request/requerimiento-request';
 import { RequerimientoResponseDTO } from '../../../api/response/requerimiento-response';
 import { productoResponseDTO } from '../../../api/response/productoResponseDTO';
@@ -75,7 +76,8 @@ export class RequerimientosComponent implements OnInit {
 
   constructor(
     private requerimientoService: RequerimientoService,
-    private prodService: ProductoService
+    private prodService: ProductoService,
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -188,6 +190,21 @@ export class RequerimientosComponent implements OnInit {
         this.mensajeError = 'Error al crear el requerimiento.';
       }
     });
+  }
+
+  aprobarRequerimiento(id: number): void {
+    if (confirm('¿Aprobar este requerimiento?')) {
+      this.requerimientoService.cambiarEstado(id, 'APROBADO').subscribe({
+        next: () => {
+          this.mensajeExito = 'Requerimiento aprobado correctamente.';
+          this.cargarRequerimientos();
+        },
+        error: (err) => {
+          console.error(err);
+          this.mensajeError = 'Error al aprobar el requerimiento.';
+        }
+      });
+    }
   }
 
   getEstadoClass(estado: string): string {

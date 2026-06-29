@@ -55,7 +55,8 @@
                   <th>Fecha</th>
                   <th>Descripción</th>
                   <th class="text-center">Productos</th>
-                  <th class="text-center pe-3">Estado</th>
+                  <th class="text-center">Estado</th>
+                  <th class="text-center pe-3">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -79,6 +80,13 @@
                             [ngClass]="getEstadoClass(req.estado)">
                         {{ req.estado }}
                       </span>
+                    </td>
+                    <td class="text-center">
+                      @if (req.estado === 'PENDIENTE' && authService.hasRole('DIRECTOR ADMINISTRATIVO')) {
+                        <button class="btn btn-success btn-sm" (click)="aprobarRequerimiento(req.idRequerimiento)">
+                          <i class="bi bi-check-circle me-1"></i> Aprobar
+                        </button>
+                      }
                     </td>
                   </tr>
                 }

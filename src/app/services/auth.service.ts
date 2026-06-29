@@ -84,19 +84,17 @@ export class AuthService {
   }
 
   hasRole(role: string): boolean {
-  const userData = localStorage.getItem('user_data');
+  const roles = this.currentUserRoles();
 
-  if (!userData) {
+  if (!Array.isArray(roles)) {
     return false;
   }
 
-  const user = JSON.parse(userData);
-
-  if (!Array.isArray(user.roles)) {
-    return false;
+  if (roles.includes('ADMIN GLOBAL') && role !== 'ROLE_PROVEEDOR') {
+    return true;
   }
 
-  return user.roles.includes(role);
+  return roles.includes(role);
 }
 
   isLoggedIn(): boolean {

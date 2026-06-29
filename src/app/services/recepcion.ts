@@ -16,7 +16,7 @@ export class Recepcion {
   constructor(private http: HttpClient) {}
 
   listarOrdenesParaVerificacion(): Observable<OrdenResponseDTO[]> {
-    return this.http.get<OrdenResponseDTO[]>(this.ordenesUrl);
+    return this.http.get<OrdenResponseDTO[]>(`${this.ordenesUrl}/recepcion/verificar`);
   }
 
   consultarOrden(id: number): Observable<OrdenResponseDTO> {

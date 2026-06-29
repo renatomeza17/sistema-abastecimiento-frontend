@@ -129,6 +129,18 @@
     </div>
   }
 
+  @if (kardexErrors.length > 0) {
+    <div class="alert alert-warning">
+      <i class="bi bi-exclamation-triangle me-1"></i>
+      <strong>Errores de Kárdex:</strong>
+      <ul class="mb-0 mt-1">
+        @for (err of kardexErrors; track err) {
+          <li>{{ err }}</li>
+        }
+      </ul>
+    </div>
+  }
+
   @if (cargando) {
     <div class="alert alert-info text-center py-4">
       <div class="spinner-border spinner-border-sm me-2" role="status"></div>
@@ -202,7 +214,8 @@
                       'bg-info-subtle text-primary': orden.estado === 'ENVIADA',
                       'bg-warning-subtle text-warning': orden.estado === 'PENDIENTE',
                       'bg-success-subtle text-success': orden.estado === 'APROBADA',
-                      'bg-secondary-subtle text-dark': orden.estado === 'ARCHIVADA'
+                      'bg-secondary-subtle text-dark': orden.estado === 'ARCHIVADA',
+                      'bg-warning text-white': orden.estado === 'PEDIDO_PENDIENTE'
                     }">
                     {{ orden.estado }}
                   </span>
@@ -254,7 +267,13 @@
           </div>
 
           <div class="d-flex gap-2 align-items-center">
-            <span class="badge bg-info-subtle text-primary">
+            <span class="badge"
+                  [ngClass]="{
+                    'bg-info-subtle text-primary': ordenSeleccionada.estado === 'ENVIADA',
+                    'bg-warning text-white': ordenSeleccionada.estado === 'PEDIDO_PENDIENTE',
+                    'bg-success-subtle text-success': ordenSeleccionada.estado === 'APROBADA',
+                    'bg-secondary-subtle text-dark': ordenSeleccionada.estado === 'ARCHIVADA'
+                  }">
               {{ ordenSeleccionada.estado }}
             </span>
 
