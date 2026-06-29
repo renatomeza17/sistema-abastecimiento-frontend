@@ -6,7 +6,7 @@ import {
 } from '@angular/common/http/testing';
 
 import { Recepcion } from './recepcion';
-import { environment } from '../environment/environment';
+import { environment } from '../environments/environment';
 
 describe('Recepcion Service', () => {
 

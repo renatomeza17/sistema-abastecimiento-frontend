@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { environment } from '../environment/environment';
+import { environment } from '../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { LoginRequest } from '../api/request/login-request';
 import { Observable, tap } from 'rxjs';

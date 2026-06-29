@@ -2,7 +2,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../environment/environment';
+import { environment } from '../environments/environment';
 import { RequerimientoRequestDTO } from '../api/request/requerimiento-request';
 import { RequerimientoResponseDTO } from '../api/response/requerimiento-response';
 

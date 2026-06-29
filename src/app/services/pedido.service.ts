@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PedidoRequestDTO } from '../api/request/pedido-requestDTO';
 import { PedidoResponseDTO } from '../api/response/pedido-responseDTO';
-import { environment } from '../environment/environment';
+import { environment } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root'

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { OrdenResponseDTO } from '../api/response/ordenResponseDTO';
-import { environment } from '../environment/environment';
+import { environment } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root',
