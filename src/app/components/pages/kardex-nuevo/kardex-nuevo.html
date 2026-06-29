@@ -18,7 +18,6 @@
   </div>
 
   <div class="row g-4">
-
     <div class="col-lg-8">
       <form [formGroup]="kardexForm">
 
@@ -92,7 +91,18 @@
 
               <div class="col-12">
                 <label class="form-label fw-semibold text-secondary small">Descripción Detallada / Observaciones</label>
-                <textarea class="form-control" formControlName="caracteristicas" rows="3" placeholder="Características particulares o condiciones de almacenamiento..."></textarea>
+                <textarea class="form-control" formControlName="caracteristicas" rows="3" 
+                  placeholder="Características particulares o condiciones de almacenamiento..."
+                  [class.is-invalid]="kardexForm.get('caracteristicas')?.invalid && kardexForm.get('caracteristicas')?.touched"></textarea>
+                
+                @if (kardexForm.get('caracteristicas')?.invalid && kardexForm.get('caracteristicas')?.touched) {
+                  <div class="invalid-feedback">
+                    @if (kardexForm.get('caracteristicas')?.errors?.['pattern']) { <span>La descripción detallada no puede superar los 200 caracteres.</span> }
+                  </div>
+                }
+                <div class="form-text text-end small text-muted">
+                  {{ kardexForm.get('caracteristicas')?.value?.length || 0 }}/200 caracteres
+                </div>
               </div>
             </div>
           </div>
@@ -108,16 +118,15 @@
                 <label class="form-label fw-semibold text-secondary small">Stock Mínimo de Alerta (*)</label>
                 <input type="number" class="form-control" formControlName="stockMinimo"
                   [class.is-invalid]="kardexForm.get('stockMinimo')?.invalid && kardexForm.get('stockMinimo')?.touched"
-                  placeholder="Ej: 10" placeholder="Ej: 10" min="1" required>
+                  placeholder="Ej: 10" min="1" max="100" required>
                   
-                 @if (kardexForm.get('stockMinimo')?.invalid && kardexForm.get('stockMinimo')?.touched) {
+                @if (kardexForm.get('stockMinimo')?.invalid && kardexForm.get('stockMinimo')?.touched) {
                   <div class="invalid-feedback">
                     @if (kardexForm.get('stockMinimo')?.errors?.['required']) { <span>El stock mínimo es requerido.</span> }
-                    @if (kardexForm.get('stockMinimo')?.errors?.['min']) { <span>Regla de negocio: No se admiten stocks menores a 1.</span> }
+                    @if (kardexForm.get('stockMinimo')?.errors?.['min'] || kardexForm.get('stockMinimo')?.errors?.['pattern']) { <span>Regla de negocio: No se admiten stocks menores a 1 ni decimales.</span> }
+                    @if (kardexForm.get('stockMinimo')?.errors?.['max']) { <span>Regla de negocio: El stock mínimo de alerta no puede superar las 100 unidades.</span> }
                   </div>
                 }
-
-
               </div>
 
               <div class="col-md-6">
@@ -135,25 +144,23 @@
               <div class="col-12">
                 <label class="form-label fw-semibold text-secondary small">Ubicación Física Directa (*)</label>
                 <input type="text" class="form-control" formControlName="ubicacionAlmacen"
-                  [class.is-invalid]="kardexForm.get('ubicacionAlmacen')?.invalid && kardexForm.get('ubicacionAlmacen')?.touched"  placeholder="Ej: A-02-03"   required>
-                  @if (kardexForm.get('ubicacionAlmacen')?.invalid && kardexForm.get('ubicacionAlmacen')?.touched) {
+                  [class.is-invalid]="kardexForm.get('ubicacionAlmacen')?.invalid && kardexForm.get('ubicacionAlmacen')?.touched" placeholder="Ej: A-02-03" required>
+                
+                @if (kardexForm.get('ubicacionAlmacen')?.invalid && kardexForm.get('ubicacionAlmacen')?.touched) {
                   <div class="invalid-feedback">
                     @if (kardexForm.get('ubicacionAlmacen')?.errors?.['required']) { <span>La ubicación es obligatoria.</span> }
-                    @if (kardexForm.get('ubicacionAlmacen')?.errors?.['pattern']) { <span>Estructura inválida. Siga el formato: 'Zona [Letra] - Estante [2 digitos] - Nivel [2 digitos]  Ejm: A-22-33.</span> }
+                    @if (kardexForm.get('ubicacionAlmacen')?.errors?.['pattern']) { <span>Estructura inválida. Siga el formato: 'Zona [Letra] - Estante [2 digitos] - Nivel [2 digitos]' Ejm: A-22-33.</span> }
                   </div>
-                  }
-                  
-                </div>
+                }
+              </div>
             </div>
           </div>
         </div>
 
       </form>
-      
     </div>
 
     <div class="col-lg-4">
-
       <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
         <div class="card-body p-4">
           <h5 class="fw-bold text-dark mb-3">Vista Previa</h5>
@@ -174,7 +181,7 @@
 
           <div class="d-flex justify-content-between mb-2 small">
             <span class="text-muted">Categoría:</span>
-            <span class="fw-semibold text-dark">{{kardexForm.get('categoria')?.value || '-' }}</span>
+            <span class="fw-semibold text-dark">{{ kardexForm.get('categoria')?.value || '-' }}</span>
           </div>
 
           <div class="d-flex justify-content-between mb-2 small">
@@ -216,63 +223,7 @@
           </button>
         </div>
       </div>
-
     </div>
 
   </div>
 </div>
-<!-- <div class="container mt-4">
-  <div class="card shadow">
-    <div class="card-header bg-primary text-white">
-      <h4 class="mb-0"><i class="bi bi-box-seam"></i> Alta de Nuevo Asiento de Kárdex (HU11)</h4>
-    </div>
-    <div class="card-body">
-      
-      <div *ngIf="mensajeExito" class="alert alert-success alert-dismissible fade show" role="alert">
-        {{ mensajeExito }}
-      </div>
-      <div *ngIf="mensajeError" class="alert alert-danger alert-dismissible fade show" role="alert">
-        {{ mensajeError }}
-      </div>
-
-      <form (ngSubmit)="guardarAsiento()">
-        <div class="row">
-          
-          <div class="col-md-6 mb-3">
-            <label class="form-label font-weight-bold">Seleccionar Producto Maestro:</label>
-            <select class="form-select" [(ngModel)]="kardexForm.idProducto" name="idProducto" required>
-              <option [ngValue]="null" disabled selected>-- Elija un producto sin stock activo --</option>
-              <option *ngFor="let prod of productosDisponibles" [ngValue]="prod.idProducto">
-                {{ prod.idProducto }} - {{ prod.nombre }}
-              </option>
-            </select>
-          </div>
-
-          <div class="col-md-3 mb-3">
-            <label class="form-label font-weight-bold">Stock Mínimo de Alerta:</label>
-            <input type="number" class="form-control" [(ngModel)]="kardexForm.stockMinimo" name="stockMinimo" min="1" required>
-          </div>
-
-          <div class="col-md-3 mb-3">
-            <label class="form-label font-weight-bold">Ubicación en Almacén:</label>
-            <input type="text" class="form-control" [(ngModel)]="kardexForm.ubicacionAlmacen" name="ubicacionAlmacen" placeholder="Ej: Estante B-12" required>
-          </div>
-
-          <div class="col-12 mb-3">
-            <label class="form-label font-weight-bold">Características Iniciales / Ficha Técnica de Control:</label>
-            <textarea class="form-control" [(ngModel)]="kardexForm.caracteristicas" name="caracteristicas" rows="4" placeholder="Describa marca, modelo, número de serie o especificaciones técnicas del bien que ingresará..." required></textarea>
-          </div>
-
-        </div>
-
-        <div class="d-flex justify-content-end gap-2 mt-2">
-          <button type="button" class="btn btn-secondary" (click)="limpiarFormulario()">Limpiar</button>
-          <button type="submit" class="btn btn-success px-4">
-            <i class="bi bi-file-earmark-plus"></i> Generar Ficha Técnica
-          </button>
-        </div>
-      </form>
-
-    </div>
-  </div>
-</div> -->

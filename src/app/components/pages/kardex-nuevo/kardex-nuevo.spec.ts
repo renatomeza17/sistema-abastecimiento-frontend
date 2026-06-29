@@ -1,152 +1,235 @@
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { KardexNuevo } from './kardex-nuevo';
-import { KardexService } from '../../../services/kardex.service';
-import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { KardexService } from '../../../services/kardex.service';
+import { Router, ActivatedRoute } from '@angular/router'; 
 import { of, throwError } from 'rxjs';
-import { RouterTestingModule } from '@angular/router/testing';
+import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';
 
-// --- Mock del servicio ---
-const kardexServiceMock = {
-  obtenerProductosDisponibles: vi.fn(),
-  crearNuevoAsiento: vi.fn(),
-};
-
-describe('KardexNuevo', () => {
+describe('KardexNuevo Component', () => {
   let component: KardexNuevo;
   let fixture: ComponentFixture<KardexNuevo>;
+  let mockKardexService: any;
+  let mockRouter: any;
+
+  const mockProductos = [
+    { idProducto: 1, codigo: 'UTI-001', nombre: 'Grampas 26/6' },
+    { idProducto: 2, codigo: 'EQP-002', nombre: 'Mouse Óptico USB' }
+  ];
+
+  beforeAll(() => {
+    // Previene fallos en entornos virtuales jsdom/happy-dom donde scrollTo no existe
+    Object.defineProperty(window, 'scrollTo', {
+      writable: true,
+      value: vi.fn(),
+    });
+  });
 
   beforeEach(async () => {
-    kardexServiceMock.obtenerProductosDisponibles.mockReturnValue(
-      of([
-        { idProducto: 1, codigo: 'UTI-001', nombre: 'Papel Bond A4' },
-        { idProducto: 2, codigo: 'UTI-002', nombre: 'Lapicero Azul' },
-      ])
-    );
+    // Inicialización de mocks de servicios con Vitest
+    mockKardexService = {
+      obtenerProductosDisponibles: vi.fn().mockReturnValue(of(mockProductos)),
+      crearNuevoAsiento: vi.fn()
+    };
+    
+    mockRouter = {
+      navigate: vi.fn().mockResolvedValue(true)
+    };
 
     await TestBed.configureTestingModule({
-      imports: [KardexNuevo, ReactiveFormsModule, RouterTestingModule],
-      providers: [
-        { provide: KardexService, useValue: kardexServiceMock },
+      imports: [
+        ReactiveFormsModule,
+        KardexNuevo // Importado directamente por ser un componente Standalone
       ],
+      providers: [
+        FormBuilder,
+        { provide: KardexService, useValue: mockKardexService },
+        { provide: Router, useValue: mockRouter },
+        { 
+          provide: ActivatedRoute, 
+          useValue: {
+            snapshot: { paramMap: { get: () => null } },
+            params: of({}),
+            queryParams: of({})
+          } 
+        }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(KardexNuevo);
     component = fixture.componentInstance;
-    fixture.detectChanges(); // dispara ngOnInit
+    fixture.detectChanges(); // Ejecuta ngOnInit y carga el catálogo maestro
   });
 
-  // ─── 1. Creación del componente ───────────────────────────────────────────
-  it('debe crearse correctamente', () => {
+  it('debería crear el componente e inicializar el catálogo maestro', () => {
     expect(component).toBeTruthy();
-  });
-
-  // ─── 2. Formulario inicial inválido ──────────────────────────────────────
-  it('el formulario debe ser inválido al inicio', () => {
-    expect(component.kardexForm.valid).toBe(false);
-  });
-
-  // ─── 3. Carga de productos al inicializar ────────────────────────────────
-  it('debe cargar el catálogo de productos en ngOnInit', () => {
+    expect(mockKardexService.obtenerProductosDisponibles).toHaveBeenCalled();
     expect(component.productosDisponibles.length).toBe(2);
-    expect(component.productosDisponibles[0].codigo).toBe('UTI-001');
   });
 
-  // ─── 4. Selección de producto actualiza productoSeleccionado ─────────────
-  it('onProductoChange debe asignar productoSeleccionado correctamente', () => {
-    component.kardexForm.get('idProducto')?.setValue(1);
-    component.onProductoChange();
-    expect(component.productoSeleccionado?.nombre).toBe('Papel Bond A4');
-  });
-
-  // ─── 5. Validación del patrón de ubicación ───────────────────────────────
-  it('ubicacionAlmacen debe rechazar formato incorrecto', () => {
-    const control = component.kardexForm.get('ubicacionAlmacen');
-    control?.setValue('Zona A - Estante 02');   // formato largo, no válido
-    control?.markAsTouched();
-    expect(control?.errors?.['pattern']).toBeTruthy();
-  });
-
-  it('ubicacionAlmacen debe aceptar formato correcto (A-02-03)', () => {
-    const control = component.kardexForm.get('ubicacionAlmacen');
-    control?.setValue('A-02-03');
-    expect(control?.valid).toBe(true);
-  });
-
-  // ─── 6. stockMinimo con valor menor a 1 es inválido ──────────────────────
-  it('stockMinimo debe ser inválido si el valor es 0', () => {
-    const control = component.kardexForm.get('stockMinimo');
-    control?.setValue(0);
-    control?.markAsTouched();
-    expect(control?.errors?.['min']).toBeTruthy();
-  });
-
-  // ─── 7. Formulario válido con todos los campos correctos ─────────────────
-  it('el formulario debe ser válido con todos los campos correctos', () => {
-    component.kardexForm.setValue({
-      idProducto: 1,
-      unidadMedida: 'UNIDAD',
-      categoria: 'Útiles de Escritorio',
-      subcategoria: 'Papelería',
-      stockMinimo: 10,
-      ubicacionAlmacen: 'A-02-03',
-      caracteristicas: 'Prueba',
-    });
-    expect(component.kardexForm.valid).toBe(true);
-  });
-
-  // ─── 8. guardarFichaTecnica no llama al servicio si el form es inválido ──
-  it('guardarFichaTecnica no debe llamar al servicio si el formulario es inválido', () => {
-    component.guardarFichaTecnica();
-    expect(kardexServiceMock.crearNuevoAsiento).not.toHaveBeenCalled();
-    expect(component.mensajeError).toBeTruthy();
-  });
-
-  // ─── 9. Flujo exitoso de guardado ────────────────────────────────────────
-  it('guardarFichaTecnica debe llamar al servicio y mostrar mensaje de éxito', () => {
-    // Llenar formulario válido
-    component.kardexForm.setValue({
-      idProducto: 1,
-      unidadMedida: 'UNIDAD',
-      categoria: 'Útiles de Escritorio',
-      subcategoria: 'Papelería',
-      stockMinimo: 5,
-      ubicacionAlmacen: 'B-01-02',
-      caracteristicas: '',
+  // --- PRUEBAS DE VALIDACIÓN DEL FORMULARIO ---
+  describe('Validación del Formulario (kardexForm)', () => {
+    
+    it('debería ser inválido cuando está vacío', () => {
+      expect(component.kardexForm.valid).toBe(false);
     });
 
-    kardexServiceMock.crearNuevoAsiento.mockReturnValue(of({ id: 99 }));
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-    vi.spyOn(window, 'alert').mockImplementation(() => {});
+    it('debería requerir campos obligatorios', () => {
+      const idProductoControl = component.kardexForm.get('idProducto');
+      const unidadMedidaControl = component.kardexForm.get('unidadMedida');
+      
+      idProductoControl?.setValue(null);
+      unidadMedidaControl?.setValue('');
 
-    component.guardarFichaTecnica();
-
-    expect(kardexServiceMock.crearNuevoAsiento).toHaveBeenCalled();
-    expect(component.mensajeExito).toBeTruthy();
-    expect(component.mensajeError).toBe('');
-  });
-
-  // ─── 10. Manejo de error del servicio ────────────────────────────────────
-  it('guardarFichaTecnica debe mostrar mensajeError si el servicio falla', () => {
-    component.kardexForm.setValue({
-      idProducto: 1,
-      unidadMedida: 'UNIDAD',
-      categoria: 'Útiles de Escritorio',
-      subcategoria: 'Papelería',
-      stockMinimo: 5,
-      ubicacionAlmacen: 'B-01-02',
-      caracteristicas: '',
+      expect(idProductoControl?.hasError('required')).toBe(true);
+      expect(unidadMedidaControl?.hasError('required')).toBe(true);
     });
 
-    kardexServiceMock.crearNuevoAsiento.mockReturnValue(
-      throwError(() => new Error('500'))
-    );
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    // --- TEST: STOCK MÍNIMO (Reglas Regex de 1 a 100) ---
+    describe('Campo: stockMinimo', () => {
+      it('debería fallar si es menor que 1 o mayor que 100', () => {
+        const stockControl = component.kardexForm.get('stockMinimo');
 
-    component.guardarFichaTecnica();
+        stockControl?.setValue(0);
+        expect(stockControl?.valid).toBe(false);
 
-    expect(component.mensajeError).toBeTruthy();
-    expect(component.mensajeExito).toBe('');
+        stockControl?.setValue(101);
+        expect(stockControl?.hasError('max')).toBe(true);
+      });
+
+      it('debería fallar si se ingresan decimales (Filtro Regex)', () => {
+        const stockControl = component.kardexForm.get('stockMinimo');
+        stockControl?.setValue(15.5);
+        expect(stockControl?.hasError('pattern')).toBe(true);
+      });
+
+      it('debería ser válido con enteros entre 1 y 100', () => {
+        const stockControl = component.kardexForm.get('stockMinimo');
+        
+        stockControl?.setValue(1);
+        expect(stockControl?.valid).toBe(true);
+
+        stockControl?.setValue(50);
+        expect(stockControl?.valid).toBe(true);
+
+        stockControl?.setValue(100);
+        expect(stockControl?.valid).toBe(true);
+      });
+    });
+
+    // --- TEST: CARACTERÍSTICAS / DESCRIPCIÓN DETALLADA (Max 200 caracteres) ---
+    describe('Campo: caracteristicas', () => {
+      it('debería aceptar un texto menor o igual a 200 caracteres', () => {
+        const txtControl = component.kardexForm.get('caracteristicas');
+        txtControl?.setValue('Condiciones normales de almacenamiento en estanterías frías.');
+        expect(txtControl?.valid).toBe(true);
+      });
+
+      it('debería fallar si el texto supera los 200 caracteres (Filtro Regex)', () => {
+        const txtControl = component.kardexForm.get('caracteristicas');
+        const textoLargo = 'a'.repeat(201);
+        
+        txtControl?.setValue(textoLargo);
+        expect(txtControl?.hasError('pattern')).toBe(true);
+      });
+    });
+
+    // --- TEST: UBICACIÓN ALMACÉN (Formato Regex A-00-00) ---
+    describe('Campo: ubicacionAlmacen', () => {
+      it('debería fallar si no sigue la nomenclatura estricta del almacén', () => {
+        const ubicacionControl = component.kardexForm.get('ubicacionAlmacen');
+
+        ubicacionControl?.setValue('a-11-22'); // Minúscula inválida
+        expect(ubicacionControl?.hasError('pattern')).toBe(true);
+
+        ubicacionControl?.setValue('A-1-2'); // Dígitos incompletos
+        expect(ubicacionControl?.hasError('pattern')).toBe(true);
+      });
+
+      it('debería ser válido si cumple la estructura estructural Regex', () => {
+        const ubicacionControl = component.kardexForm.get('ubicacionAlmacen');
+        ubicacionControl?.setValue('B-12-04');
+        expect(ubicacionControl?.valid).toBe(true);
+      });
+    });
+  });
+
+  // --- PRUEBAS DE MÉTODOS Y COMPORTAMIENTO ---
+  describe('Método: onProductoChange', () => {
+    it('debería mapear el objeto producto seleccionado cuando cambia el idProducto', () => {
+      component.kardexForm.get('idProducto')?.setValue(2);
+      component.onProductoChange();
+
+      expect(component.productoSeleccionado).toBeTruthy();
+      expect(component.productoSeleccionado.codigo).toBe('EQP-002');
+    });
+
+    it('debería resetear el producto seleccionado a null si el id es vacío', () => {
+      component.kardexForm.get('idProducto')?.setValue(null);
+      component.onProductoChange();
+
+      expect(component.productoSeleccionado).toBeNull();
+    });
+  });
+
+  describe('Método: guardarFichaTecnica', () => {
+    beforeEach(() => {
+      // Re-establecemos valores válidos antes de testear flujos de persistencia
+      component.kardexForm.setValue({
+        idProducto: 1,
+        unidadMedida: 'UNIDAD',
+        categoria: 'Útiles de Escritorio',
+        subcategoria: 'Papelería',
+        stockMinimo: 10,
+        ubicacionAlmacen: 'A-10-20',
+        caracteristicas: 'Prueba completa con Vitest'
+      });
+    });
+
+    it('no debería proceder si el formulario es inválido', () => {
+      component.kardexForm.get('idProducto')?.setValue(null);
+      component.guardarFichaTecnica();
+
+      expect(mockKardexService.crearNuevoAsiento).not.toHaveBeenCalled();
+      expect(component.mensajeError).toContain('Por favor, resuelva las alertas rojas');
+    });
+
+it('debería llamar al servicio y resetear el formulario tras confirmación exitosa', () => {
+      vi.useFakeTimers();
+
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {}); 
+      
+      mockKardexService.crearNuevoAsiento.mockReturnValue(of({ status: 'CREATED' }));
+
+      // Guardamos una copia exacta de los datos esperados antes de que el componente los limpie
+      const datosEsperados = { ...component.kardexForm.value };
+
+      component.guardarFichaTecnica();
+
+      // Comparamos contra la copia estática que guardamos, evitando el problema de la referencia reseteada
+      expect(mockKardexService.crearNuevoAsiento).toHaveBeenCalledWith(datosEsperados);
+      expect(component.mensajeExito).toContain('aperturada con éxito!');
+      
+      vi.advanceTimersByTime(5000);
+      
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['inventario/nuevo-kardex']);
+
+      confirmSpy.mockRestore();
+      alertSpy.mockRestore();
+      vi.useRealTimers();
+    });
+
+    it('debería capturar el error de comunicación si el backend falla', () => {
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      mockKardexService.crearNuevoAsiento.mockReturnValue(throwError(() => new Error('Error de servidor')));
+
+      component.guardarFichaTecnica();
+
+      expect(component.mensajeError).toContain('No se pudo registrar la ficha técnica en el servidor.');
+      expect(component.mensajeExito).toBe('');
+
+      confirmSpy.mockRestore();
+    });
   });
 });

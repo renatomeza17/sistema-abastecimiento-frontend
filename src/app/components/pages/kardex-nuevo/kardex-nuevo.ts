@@ -1,24 +1,17 @@
 import { Component, OnInit } from '@angular/core';
-import { Producto } from '../../../models/Producto';
-import { KardexRequestDTO } from '../../../api/request/kardexRequestDTO';
 import { KardexService } from '../../../services/kardex.service';
-import { CommonModule } from '@angular/common'; // <-- 1. IMPORTANTE: Trae *ngIf, *ngFor, etc.
-import { FormBuilder, FormGroup, FormsModule, NgForm, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { CommonModule } from '@angular/common'; 
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-// import { form } from '@angular/forms/signals';
-
 
 @Component({
   selector: 'app-kardex-nuevo',
-  imports: [CommonModule, RouterModule,ReactiveFormsModule],
+  standalone: true,
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
   templateUrl: './kardex-nuevo.html',
   styleUrl: './kardex-nuevo.scss'
 })
-
-
 export class KardexNuevo implements OnInit {
- 
 
   kardexForm!: FormGroup;
   productosDisponibles: any[] = [];
@@ -37,18 +30,31 @@ export class KardexNuevo implements OnInit {
     this.cargarCatalogoMaestro();
   }
 
-
   initForm(): void {
     this.kardexForm = this.fb.group({
       idProducto: [null, [Validators.required]],
       unidadMedida: ['', [Validators.required]],
       categoria: ['', [Validators.required]],
       subcategoria: ['', [Validators.required]],
-      // Validación numérica estricta: obligatorio y mínimo valor 1
-      stockMinimo: [null, [Validators.required, Validators.min(1)]],
-      // Patrón estructurado Regex de almacén
-      ubicacionAlmacen: ['', [Validators.required, Validators.pattern('^[A-Z]-[0-9]{2}-[0-9]{2}$')]],
-      caracteristicas: ['']
+      
+      // Stock Mínimo: Solo enteros entre 1 y 100 usando regex y validadores numéricos
+      stockMinimo: [null, [
+        Validators.required, 
+        Validators.min(1), 
+        Validators.max(100),
+        Validators.pattern('^(0|[1-9][0-9]?|100)$')
+      ]],
+      
+      // Patrón estructurado Regex de almacén original
+      ubicacionAlmacen: ['', [
+        Validators.required, 
+        Validators.pattern('^[A-Z]-[0-9]{2}-[0-9]{2}$')
+      ]],
+      
+      // Descripción Detallada: Máximo 200 caracteres con control estricto Regex de longitud
+      caracteristicas: ['', [
+        Validators.pattern('^[\\s\\S]{0,200}$')
+      ]]
     });
   }
 
@@ -65,7 +71,6 @@ export class KardexNuevo implements OnInit {
       });
   }
 
-  // Intercepta el cambio de producto para capturar código y nombre en caliente
   onProductoChange(): void {
     const idProductoSeleccionado = this.kardexForm.get('idProducto')?.value;
     if (idProductoSeleccionado) {
@@ -84,58 +89,35 @@ export class KardexNuevo implements OnInit {
       return;
     }
     
-    
-
     const confirmacion = window.confirm('¿Está seguro de aperturar la ficha técnica de Kárdex para este producto?');
-
-    // Si el usuario hace clic en "Cancelar", detenemos la ejecución aquí
     if (!confirmacion) {
       return; 
     }
 
     const payloadFinal = this.kardexForm.value;
     console.log('Payload Reactivo enviado a Spring Boot:', payloadFinal);
-    
   
     this.kardexService.crearNuevoAsiento(payloadFinal)
       .subscribe({
         next: (res: any) => {
-          // 2. Si Angular logra leer la respuesta perfectamente, lanza esta alerta:
           alert('✅ ¡ÉXITO! La Ficha Técnica ha sido guardada en la base de datos correctamente.');
-
           this.mensajeExito = '¡Ficha Técnica de Control aperturada con éxito!';
           this.mensajeError = '';
           window.scrollTo({ top: 0, behavior: 'smooth' });
 
           this.kardexForm.reset();
           this.productoSeleccionado = null;
-          this.cargarCatalogoMaestro(); // Refresca el combo para actualizar la UI
+          this.cargarCatalogoMaestro(); 
           
           setTimeout(() => {
             this.router.navigate(['inventario/nuevo-kardex']);
           }, 5000);
         },
         error: (err: any) => {
-          console.error('Fallo al registrar en Neon:', err);
-          
+          console.error('Fallo al registrar en la base de datos:', err);
           this.mensajeError = 'No se pudo registrar la ficha técnica en el servidor.';
           this.mensajeExito = '';
         }
       });
   }
-
-
-  // limpiarFormulario(): void {
-  //   this.kardexRequest = {
-  //     idProducto: null,
-  //     unidadMedida: '',
-  //     categoria: '',
-  //     subcategoria: '',
-  //     stockMinimo: null,
-  //     ubicacionAlmacen: '',
-  //     caracteristicas: ''
-  //   };
-  //   this.productoSeleccionado = null;
-  // }
-
 }
