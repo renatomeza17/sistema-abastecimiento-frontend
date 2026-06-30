@@ -69,33 +69,49 @@
 
       <form (ngSubmit)="onLogin()">
 
+        @if (errorGeneral) {
+          <div class="alert alert-danger py-2 mb-3">
+            <i class="bi bi-exclamation-circle me-1"></i>
+            {{ errorGeneral }}
+          </div>
+        }
+
         <div class="form-group">
           <label>Correo electrónico o usuario</label>
-          <div class="input-wrapper">
+          <div class="input-wrapper" [class.is-invalid]="errorIdentificador">
             <i class="bi bi-person"></i>
             <input
               type="text"
               name="identificador"
               [(ngModel)]="credential.identificador"
-              placeholder="Ingrese su usuario o correo">
+              placeholder="Ingrese su usuario o correo"
+              (input)="errorIdentificador = ''">
           </div>
+          @if (errorIdentificador) {
+            <small class="text-danger">{{ errorIdentificador }}</small>
+          }
         </div>
 
         <div class="form-group">
           <label>Contraseña</label>
-          <div class="input-wrapper">
+          <div class="input-wrapper" [class.is-invalid]="errorPassword">
             <i class="bi bi-key"></i>
             <input
-              type="password"
+              [type]="mostrarPassword ? 'text' : 'password'"
               name="password"
               [(ngModel)]="credential.password"
-              placeholder="Ingrese su contraseña">
+              placeholder="Ingrese su contraseña"
+              (input)="errorPassword = ''">
+            <i class="bi toggle-password" [ngClass]="mostrarPassword ? 'bi-eye-slash' : 'bi-eye'" (click)="mostrarPassword = !mostrarPassword"></i>
           </div>
+          @if (errorPassword) {
+            <small class="text-danger">{{ errorPassword }}</small>
+          }
         </div>
 
         <div class="login-options">
           <label class="remember">
-            <input type="checkbox">
+            <input type="checkbox" [(ngModel)]="recordar" [ngModelOptions]="{standalone: true}">
             Recordarme
           </label>
 
