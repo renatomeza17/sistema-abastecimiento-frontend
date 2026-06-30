@@ -1,10 +1,4 @@
-import {
-  HttpInterceptorFn,
-  HttpErrorResponse,
-  HttpRequest,
-  HttpHandlerFn
-} from '@angular/common/http';
-
+import {HttpInterceptorFn,HttpErrorResponse, HttpRequest,HttpHandlerFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, switchMap, filter, take, finalize } from 'rxjs/operators';
@@ -22,7 +16,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const excludedPaths = [
     '/api/auth/login',
-    '/api/auth/register',
     '/api/auth/refresh-token'
   ];
 
@@ -46,7 +39,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error) => {
-      if (error instanceof HttpErrorResponse && error.status === 401) {
+      if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
         return refreshTokenAndRetry(req, next, authService);
       }
       return throwError(() => error);
@@ -79,7 +72,7 @@ function refreshTokenAndRetry(
         return next(retryRequest);
       }),
       catchError((err) => {
-        if (err instanceof HttpErrorResponse && err.status === 401) {
+        if (err instanceof HttpErrorResponse && (err.status === 401 || err.status === 403)) {
           authService.logout();
         }
         return throwError(() => err);
