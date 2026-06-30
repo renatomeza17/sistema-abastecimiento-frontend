@@ -87,9 +87,9 @@
           <form #movForm="ngForm" (ngSubmit)="guardarMovimiento()">
             <div class="mb-3">
               <label class="form-label fw-semibold text-secondary small">Tipo de Operación *</label>
-              <select class="form-select" [(ngModel)]="movimientoForm.tipoMovimiento" name="tipoMovimiento" required>
-                <option value="ENTRADA">🟢 ENTRADA (Ingreso por Orden de Compra)</option>
-                <option value="SALIDA">🔴 SALIDA (Despacho por PECOSA)</option>
+              <select class="form-select" [(ngModel)]="movimientoForm.tipoMovimiento" (change)="onTipoMovimientoChange()" name="tipoMovimiento" required>
+                <option value="ENTRADA">🟢 AJUSTE DE ENTRADA (Donación/Sobrante)</option>
+                <option value="SALIDA">🔴 AJUSTE DE SALIDA (Merma/Rotura/Vencimiento)</option>
               </select>
             </div>
 

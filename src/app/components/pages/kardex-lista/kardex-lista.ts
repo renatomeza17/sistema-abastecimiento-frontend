@@ -99,37 +99,63 @@ export class KardexLista implements OnInit{
 
   // 🧠 MAGIA DE LA REGLA DE NEGOCIO: Carga OC si es entrada, PECOSA si es salida
   onTipoMovimientoChange(): void {
+
     this.documentosDisponibles = [];
-    this.movimientoForm.documentoReferencia = ''; // Limpiamos la selección
-    this.loadingDocumentos = false;
+    this.movimientoForm.documentoReferencia = ''; 
+    this.loadingDocumentos = true;
 
     if (this.movimientoForm.tipoMovimiento === 'ENTRADA') {
-      // Llamamos al Backend para traer solo Órdenes Reales
-      this.ordenService.listarTodas().subscribe({
-        next: (ordenes: any[]) => {
-          // Filtramos para que el Almacenero solo vea OC's Aprobadas o Enviadas (listas para recibir)
-          this.documentosDisponibles = ordenes
-            .filter(o => o.estado === 'APROBADA' || o.estado === 'ENVIADA' || o.estado === 'RECIBIDA')
-            .map(o => o.codigo); // Formateamos a tu gusto
-          this.loadingDocumentos = false;
-        },
-        error: (err) => {
-          console.error(err);
-          this.loadingDocumentos = false;
-        }
-      });
+      // CAMBIO: Ya no listamos todas las OC del sistema aquí.
+      // Solo permitimos ajustes manuales de entrada (ej. Donaciones, Inventario Inicial).
+      this.documentosDisponibles = [
+        'AJUSTE-SOBRANTE', 
+        'AJUSTE-INVENTARIO-INICIAL',
+        'AJUSTE-DONACION',
+        'AJUSTE-OTROS'
+      ];
+      this.loadingDocumentos = false;
     } else {
-      // Es una SALIDA. Aquí luego conectaremos con el servicio PecosaService.
-      // Por ahora simulamos la data.
-      setTimeout(() => {
-        this.documentosDisponibles = [
-          'PECOSA-2026-0001 (Área de Sistemas)',
-          'PECOSA-2026-0002 (RRHH)',
-          'PECOSA-2026-0003 (Rectorado)'
-        ];
-        this.loadingDocumentos = false;
-      }, 500); // Simulamos un pequeño retraso de red
+      // SALIDA: Sigue siendo la misma lógica que planeamos para PECOSAS
+      this.loadingDocumentos = false;
+      this.documentosDisponibles = [
+        'PECOSA-PENDIENTE-POR-PROCESAR',
+        'AJUSTE-MERMA',
+        'AJUSTE-OTROS'
+      ];
     }
+
+
+    // this.documentosDisponibles = [];
+    // this.movimientoForm.documentoReferencia = ''; // Limpiamos la selección
+    // this.loadingDocumentos = false;
+
+    // if (this.movimientoForm.tipoMovimiento === 'ENTRADA') {
+    //   // Llamamos al Backend para traer solo Órdenes Reales
+    //   this.ordenService.listarTodas().subscribe({
+    //     next: (ordenes: any[]) => {
+    //       // Filtramos para que el Almacenero solo vea OC's Aprobadas o Enviadas (listas para recibir)
+    //       this.documentosDisponibles = ordenes
+    //         .filter(o => o.estado === 'APROBADA' || o.estado === 'ENVIADA' || o.estado === 'RECIBIDA')
+    //         .map(o => o.codigo); // Formateamos a tu gusto
+    //       this.loadingDocumentos = false;
+    //     },
+    //     error: (err) => {
+    //       console.error(err);
+    //       this.loadingDocumentos = false;
+    //     }
+    //   });
+    // } else {
+    //   // Es una SALIDA. Aquí luego conectaremos con el servicio PecosaService.
+    //   // Por ahora simulamos la data.
+    //   setTimeout(() => {
+    //     this.documentosDisponibles = [
+    //       'PECOSA-2026-0001 (Área de Sistemas)',
+    //       'PECOSA-2026-0002 (RRHH)',
+    //       'PECOSA-2026-0003 (Rectorado)'
+    //     ];
+    //     this.loadingDocumentos = false;
+    //   }, 500); // Simulamos un pequeño retraso de red
+    // }
   }
 
 
