@@ -1,37 +1,137 @@
 .role-card {
-  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-  border-top: 5px solid #0d6efd !important; // Azul institucional
+  transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: none !important;
+  background: linear-gradient(145deg, #ffffff, #f8faff);
+  position: relative;
+  overflow: hidden;
   cursor: default;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #6366f1, #2563eb, #06b6d4);
+    border-radius: 16px 16px 0 0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.03), transparent 70%);
+    pointer-events: none;
+    border-radius: 50%;
+  }
 
   &:hover {
     transform: translateY(-8px);
-    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 20px 40px rgba(99, 102, 241, 0.12), 0 8px 20px rgba(0, 0, 0, 0.06) !important;
   }
 }
 
 .icon-box {
-  background-color: #f0f7ff;
-  width: 60px;
-  height: 60px;
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
+  border-radius: 14px !important;
+  border: 1px solid rgba(99, 102, 241, 0.1);
 
-.bg-primary-subtle {
-  background-color: #e7f0ff !important;
-}
-
-.action-buttons {
-  opacity: 0.7;
-  transition: opacity 0.2s;
-  
-  &:hover {
-    opacity: 1;
+  i {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
 
-.badge {
-  font-weight: 500;
-  letter-spacing: 0.3px;
+.action-buttons {
+  opacity: 0.5;
+  transition: opacity 0.25s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  .btn-link {
+    text-decoration: none;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.15);
+    }
+  }
+}
+
+.modulo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    transform: translateX(4px);
+  }
+
+  .modulo-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+  }
+}
+
+.permiso-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+
+  &.permiso-leer { background: #dcfce7; color: #16a34a; }
+  &.permiso-crear { background: #dbeafe; color: #2563eb; }
+  &.permiso-actualizar { background: #fef3c7; color: #d97706; }
+  &.permiso-eliminar { background: #fee2e2; color: #dc2626; }
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.fallback-badge {
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff) !important;
+  color: #4f46e5 !important;
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  font-weight: 600;
+  padding: 8px 16px !important;
+  font-size: 13px;
+  transition: all 0.2s;
+
+  &:hover {
+    background: linear-gradient(135deg, #e0e7ff, #c7d2fe) !important;
+    transform: translateY(-1px);
+  }
 }
