@@ -1,29 +1,26 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
-
+import { BehaviorSubject,observeOn,asapScheduler } from 'rxjs';
 @Injectable({
   providedIn: 'root',
 })
 export class LoadingService {
-  private activeRequest = 0;
-  private loadingSubject = new Subject<boolean>();
-  loading$ = this.loadingSubject.asObservable();
-  private hideTimeout: any = null;
+ 
+  private activeRequest= 0 ;
+  private loadingSubject=new BehaviorSubject<boolean>(false);
+  loading$=this.loadingSubject.asObservable().pipe(observeOn(asapScheduler))
 
-  show() {
-    this.activeRequest++;
-    if (this.activeRequest === 1) {
-      this.loadingSubject.next(true);
+    show(){
+      this.activeRequest++
+      if(this.activeRequest===1){
+        this.loadingSubject.next(true)
+      }
     }
-  }
 
-  hide() {
-    this.activeRequest--;
-    if (this.activeRequest === 0 && !this.hideTimeout) {
-      this.hideTimeout = setTimeout(() => {
-        this.hideTimeout = null;
-        this.loadingSubject.next(false);
-      }, 300);
+    hide(){
+      this.activeRequest--;
+      if(this.activeRequest<=0)
+        this.activeRequest=0
+        this.loadingSubject.next(false)
     }
-  }
+
 }
